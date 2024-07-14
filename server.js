@@ -1,4 +1,8 @@
-const express = require('express');
+const express = require('express'); //
+const bodyParser = require('body-parser'); //
+const bcrypt = require('bcryptjs'); //
+const jwt = require('jsonwebtoken');//
+
 const app = express();
 const multer = require('multer');
 const cors = require('cors');
@@ -65,8 +69,37 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-const IP_ADDRESS = '192.168.100.33';
+app.use(bodyParser.json());
+
+const users = [
+ 
+  { id: 1, username: 'Admin', password: bcrypt.hashSync('88888888', 8) }
+];
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  const user = users.find(u => u.username === username);
+  if (!user) {
+    return res.status(400).json({ message: 'User not found' });
+  }
+
+  const passwordIsValid = bcrypt.compareSync(password, user.password);
+  if (!passwordIsValid) {
+    return res.status(401).json({ message: 'Invalid password' });
+  }
+
+  const token = jwt.sign({ id: user.id }, 'secret-key', { expiresIn: 86400 }); // 24 hours
+  res.status(200).json({ auth: true, token });
+});
+
+const IP_ADDRESS = '192.168.1.49';
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server is running on http://${IP_ADDRESS}:${PORT}`);
 });
+
+
+
+
+
