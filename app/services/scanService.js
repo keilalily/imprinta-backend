@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { PDFDocument, rgb } = require('pdf-lib');
 
 let scanData = {
   imageData: null,
@@ -48,10 +49,30 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
   throw new Error('JSPrintManager is not installed');
 };
 
+async function createPdfFromImage(imageData) {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage();
+
+  const image = await pdfDoc.embedPng(imageData);
+  const { width, height } = image.scale(1);
+
+  page.drawImage(image, {
+    x: 0,
+    y: page.getHeight() - height,
+    width,
+    height,
+  });
+
+  const pdfBytes = await pdfDoc.save();
+  return pdfBytes;
+}
+
 exports.sendScannedFile = async (email, imageData) => {
   if (!email || !imageData) {
     throw new Error('Email or image data not provided');
   }
+
+  const pdfBytes = await createPdfFromImage(imageData);
 
   let transporter = nodemailer.createTransport({
     host: 'smtp.example.com',
@@ -70,8 +91,8 @@ exports.sendScannedFile = async (email, imageData) => {
     text: 'Please find the scanned document attached.',
     attachments: [
       {
-        filename: `scanned_image_${Date.now()}.png`,
-        content: Buffer.from(imageData, 'base64'),
+        filename: `scanned_document_${Date.now()}.pdf`,
+        content: pdfBytes,
         encoding: 'base64',
       },
     ],

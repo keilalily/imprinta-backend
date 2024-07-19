@@ -5,7 +5,9 @@ const WebSocket = require('ws');
 const bodyParser = require('body-parser');
 const adminRoutes = require('./app/routes/adminRoutes');
 const fileRoutes = require('./app/routes/fileRoutes');
+const printRoutes = require('./app/routes/printRoutes');
 const scanRoutes = require('./app/routes/scanRoutes');
+const copyRoutes = require('./app/routes/copyRoutes');
 
 const app = express();
 app.use(cors());
@@ -17,7 +19,9 @@ const wss = new WebSocket.Server({ server });
 
 app.use('/admin', adminRoutes);
 app.use('/file', fileRoutes);
+app.use('/print', printRoutes);
 app.use('/scan', scanRoutes);
+app.use('/copy', copyRoutes);
 
 const IP_ADDRESS = '192.168.100.33';
 const PORT = process.env.PORT || 3000;
