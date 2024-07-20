@@ -8,6 +8,7 @@ const fileRoutes = require('./app/routes/fileRoutes');
 const printRoutes = require('./app/routes/printRoutes');
 const scanRoutes = require('./app/routes/scanRoutes');
 const copyRoutes = require('./app/routes/copyRoutes');
+const pricingRoutes = require('./app/routes/pricingRoutes');
 
 const app = express();
 app.use(cors());
@@ -22,6 +23,7 @@ app.use('/file', fileRoutes);
 app.use('/print', printRoutes);
 app.use('/scan', scanRoutes);
 app.use('/copy', copyRoutes);
+app.use('/pricing', pricingRoutes);
 
 const IP_ADDRESS = '192.168.100.33';
 const PORT = process.env.PORT || 3000;
