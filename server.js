@@ -25,7 +25,7 @@ app.use('/scan', scanRoutes);
 app.use('/copy', copyRoutes);
 app.use('/pricing', pricingRoutes);
 
-const IP_ADDRESS = '192.168.1.49';
+const IP_ADDRESS = '192.168.100.33';
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server is running on http://${IP_ADDRESS}:${PORT}`);
