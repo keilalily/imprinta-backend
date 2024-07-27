@@ -35,7 +35,7 @@
 // module.exports = { admin, db };
 
 const admin = require('firebase-admin');
-const serviceAccount = require('C:\\Users\\Mary\\Downloads\\vpmm-9d033-firebase-adminsdk-gdthe-de20e1c4b6.json'); // Ensure you have a service account key file
+const serviceAccount = require('D:/download/vpmm-9d033-firebase-adminsdk-gdthe-de20e1c4b6.json'); // Ensure you have a service account key file
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

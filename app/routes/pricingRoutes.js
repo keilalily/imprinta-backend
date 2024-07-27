@@ -3,6 +3,6 @@ const router = express.Router();
 const pricingController = require('../controllers/pricingController');
 
 router.get('/prices', pricingController.getPricing);
-router.post('/prices', pricingController.setPricing);
+router.post('/prices', pricingController.updatePricing);
 
 module.exports = router;
