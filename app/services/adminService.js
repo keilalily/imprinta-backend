@@ -114,7 +114,6 @@ const bcrypt = require('bcryptjs');
 const db = require('../../config'); // Import the initialized Firebase Admin instance
 const ref = db.ref("/login");
 
-
 // Helper function to verify password
 const verifyPassword = async (inputPassword, storedPassword) => {
   return bcrypt.compare(inputPassword, storedPassword);
