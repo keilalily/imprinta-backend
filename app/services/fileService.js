@@ -60,6 +60,7 @@ exports.processUpload = async (originalname, tempFilePath) => {
   }
 };
 
+// require('dotenv').config();
 // const fs = require('fs').promises;
 // const path = require('path');
 // const WebSocket = require('ws');
@@ -68,9 +69,9 @@ exports.processUpload = async (originalname, tempFilePath) => {
 
 // const wss = new WebSocket.Server({ noServer: true });
 
-// const convertDocxToPdf = (inputPath, outputPath) => {
+// const convertDocxToPdf = (inputPath, outputDir) => {
 //   return new Promise((resolve, reject) => {
-//     const command = `soffice --headless --convert-to pdf --outdir ${path.dirname(outputPath)} ${inputPath}`;
+//     const command = `"${process.env.SOFFICE_PATH}" --headless --invisible --norestore --nolockcheck --convert-to pdf --outdir "${outputDir}" "${inputPath}" --safe-mode`;
     
 //     exec(command, (error, stdout, stderr) => {
 //       if (error) {
@@ -86,18 +87,36 @@ exports.processUpload = async (originalname, tempFilePath) => {
 //   });
 // };
 
+// const renameGeneratedPdf = async (uploadDir, originalname) => {
+//   const files = await fs.readdir(uploadDir);
+//   const pdfFiles = files.filter(file => file.endsWith('.pdf'));
+
+//   if (pdfFiles.length === 0) {
+//     throw new Error('No PDF file was generated during conversion.');
+//   }
+
+//   const generatedPdfPath = path.join(uploadDir, pdfFiles[0]);
+//   const newPdfPath = path.join(uploadDir, originalname.replace(path.extname(originalname), '.pdf'));
+
+//   await fs.rename(generatedPdfPath, newPdfPath);
+//   return newPdfPath;
+// };
+
 // exports.processUpload = async (originalname, tempFilePath) => {
-//   let pdfPath = tempFilePath;
-//   let convertedPdfPath;
+//   const uploadDir = 'uploads';
+//   let pdfPath;
 
 //   try {
 //     // Check if the file is a DOCX file before attempting conversion
 //     if (originalname.endsWith('.docx')) {
 //       console.log('Starting conversion...');
-//       await convertDocxToPdf(tempFilePath, convertedPdfPath);
+//       await convertDocxToPdf(tempFilePath, uploadDir);
 //       console.log('Conversion completed successfully.');
-//       convertedPdfPath = path.join('uploads', originalname.replace(path.extname(originalname), '.pdf'));
-//       pdfPath = convertedPdfPath;
+
+//       // Rename the generated PDF file to match the original name
+//       pdfPath = await renameGeneratedPdf(uploadDir, originalname);
+//     } else {
+//       throw new Error('The provided file is not a DOCX file.');
 //     }
 
 //     const pdfBytes = await fs.readFile(pdfPath);
@@ -124,12 +143,12 @@ exports.processUpload = async (originalname, tempFilePath) => {
 //       console.error(`Error deleting temporary file ${tempFilePath}:`, unlinkError);
 //     }
 
-//     if (convertedPdfPath) {
+//     if (pdfPath) {
 //       try {
-//         await fs.unlink(convertedPdfPath);
-//         console.log(`Converted file ${convertedPdfPath} deleted successfully.`);
+//         await fs.unlink(pdfPath);
+//         console.log(`Converted file ${pdfPath} deleted successfully.`);
 //       } catch (unlinkError) {
-//         console.error(`Error deleting converted file ${convertedPdfPath}:`, unlinkError);
+//         console.error(`Error deleting converted file ${pdfPath}:`, unlinkError);
 //       }
 //     }
 //   }
