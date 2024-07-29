@@ -1,23 +1,16 @@
+require('dotenv').config();
 const admin = require('firebase-admin');
-const serviceAccount = require('C:\\Users\\Mary\\Downloads\\vpmm-9d033-firebase-adminsdk-gdthe-de20e1c4b6.json');
+const fs = require('fs');
+const path = require('path');
+
+const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const serviceAccount = JSON.parse(fs.readFileSync(path.resolve(serviceAccountPath)));
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://vpmm-9d033-default-rtdb.firebaseio.com/'
+  databaseURL: process.env.FIREBASE_DATABASE_URL
 });
 
 const db = admin.database();
 
 module.exports = db;
-
-// const admin = require('firebase-admin');
-// const serviceAccount = require('D:/download/vpmm-9d033-firebase-adminsdk-gdthe-de20e1c4b6.json');
-
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-//   databaseURL: 'https://vpmm-9d033-default-rtdb.firebaseio.com/'
-// });
-
-// const db = admin.database();
-
-// module.exports = db;

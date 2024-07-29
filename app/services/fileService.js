@@ -62,34 +62,41 @@ exports.processUpload = async (originalname, tempFilePath) => {
 
 // const fs = require('fs').promises;
 // const path = require('path');
-// const { execFile } = require('child_process');
-// const { PDFDocument } = require('pdf-lib');
 // const WebSocket = require('ws');
+// const { PDFDocument } = require('pdf-lib');
+// const { exec } = require('child_process'); // Import child_process module
 
 // const wss = new WebSocket.Server({ noServer: true });
+
+// const convertDocxToPdf = (inputPath, outputPath) => {
+//   return new Promise((resolve, reject) => {
+//     const command = `soffice --headless --convert-to pdf --outdir ${path.dirname(outputPath)} ${inputPath}`;
+    
+//     exec(command, (error, stdout, stderr) => {
+//       if (error) {
+//         reject(`Error during conversion: ${error.message}`);
+//         return;
+//       }
+//       if (stderr) {
+//         reject(`stderr: ${stderr}`);
+//         return;
+//       }
+//       resolve(stdout);
+//     });
+//   });
+// };
 
 // exports.processUpload = async (originalname, tempFilePath) => {
 //   let pdfPath = tempFilePath;
 //   let convertedPdfPath;
 
 //   try {
-//     if (originalname.endsWith('.docx') || originalname.endsWith('.pptx')) {
+//     // Check if the file is a DOCX file before attempting conversion
+//     if (originalname.endsWith('.docx')) {
+//       console.log('Starting conversion...');
+//       await convertDocxToPdf(tempFilePath, convertedPdfPath);
+//       console.log('Conversion completed successfully.');
 //       convertedPdfPath = path.join('uploads', originalname.replace(path.extname(originalname), '.pdf'));
-
-//       await new Promise((resolve, reject) => {
-//         const command = 'soffice';
-//         const args = ['--headless', '--convert-to', 'pdf', '--outdir', path.dirname(convertedPdfPath), tempFilePath, { shell: true }];
-
-//         execFile(command, args, (error, stdout, stderr) => {
-//           if (error) {
-//             console.error(`Error: ${stderr}`);
-//             return reject(error);
-//           }
-//           console.log(`Converted: ${stdout}`);
-//           resolve();
-//         });
-//       });
-
 //       pdfPath = convertedPdfPath;
 //     }
 

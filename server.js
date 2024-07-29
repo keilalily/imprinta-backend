@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -25,8 +26,9 @@ app.use('/scan', scanRoutes);
 app.use('/copy', copyRoutes);
 app.use('/pricing', pricingRoutes);
 
-const IP_ADDRESS = '192.168.100.33';
+const IP_ADDRESS = process.env.IP_ADDRESS || '127.0.0.1'; // Localhost Default
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+
+server.listen(PORT, IP_ADDRESS, () => {
   console.log(`Server is running on http://${IP_ADDRESS}:${PORT}`);
 });

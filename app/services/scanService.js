@@ -1,5 +1,6 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
-const { PDFDocument, rgb } = require('pdf-lib');
+const { PDFDocument } = require('pdf-lib');
 
 let scanData = {
   imageData: null,
@@ -75,17 +76,17 @@ exports.sendScannedFile = async (email, imageData) => {
   const pdfBytes = await createPdfFromImage(imageData);
 
   let transporter = nodemailer.createTransport({
-    host: 'smtp.example.com',
-    port: 587,
-    secure: false,
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: 'your_email@example.com',
-      pass: 'your_email_password',
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
     },
   });
 
   let mailOptions = {
-    from: '"Vendo Printing Machine" <your_email@example.com>',
+    from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Your Scanned Document',
     text: 'Please find the scanned document attached.',
