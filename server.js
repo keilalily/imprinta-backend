@@ -11,13 +11,26 @@ const scanRoutes = require('./app/routes/scanRoutes');
 const copyRoutes = require('./app/routes/copyRoutes');
 const pricingRoutes = require('./app/routes/pricingRoutes');
 
+// Arduino Code
+const { initSerialPort, getPulseCount, getAmountInserted, resetCounts } = require('./app/services/arduinoService');
+const arduinoRoutes = require('./app/routes/arduinoRoutes');
+
 const app = express();
 app.use(cors());
 app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.json());
 
+app.use('/api', arduinoRoutes);
+
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+
+initSerialPort(wss);
+
+wss.on('connection', (ws) => {
+  console.log('New client connected');
+  ws.send(JSON.stringify({ pulseCount: getPulseCount(), amountInserted: getAmountInserted() }));
+});
 
 app.use('/admin', adminRoutes);
 app.use('/file', fileRoutes);
