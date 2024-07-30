@@ -10,6 +10,7 @@ const printRoutes = require('./app/routes/printRoutes');
 const scanRoutes = require('./app/routes/scanRoutes');
 const copyRoutes = require('./app/routes/copyRoutes');
 const pricingRoutes = require('./app/routes/pricingRoutes');
+const inventoryRoutes = require('./app/routes/inventoryRoutes');
 
 // Arduino Code
 const { initSerialPort, getPulseCount, getAmountInserted, resetCounts } = require('./app/services/arduinoService');
@@ -38,6 +39,7 @@ app.use('/print', printRoutes);
 app.use('/scan', scanRoutes);
 app.use('/copy', copyRoutes);
 app.use('/pricing', pricingRoutes);
+app.use('/data', inventoryRoutes);
 
 const IP_ADDRESS = process.env.IP_ADDRESS || '127.0.0.1'; // Localhost Default
 const PORT = process.env.PORT || 3000;
