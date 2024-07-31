@@ -1,4 +1,4 @@
-const db = require('../../config'); // Import the initialized Firebase Admin instance
+const db = require('../config/firebaseConfig'); // Import the initialized Firebase Admin instance
 const ref = db.ref("/Inventory");
 
 const updateInventory = async (data) => {
