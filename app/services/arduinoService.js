@@ -46,7 +46,7 @@ const initSerialPort = (wss) => {
   parser.on('data', (data) => {
     const pulses = parseInt(data.trim(), 10);
     pulseCount += pulses;
-    amountInserted += pulses * 1.0; // Assuming 1 pulse equals 1 peso
+    amountInserted += pulses * 1.0;
 
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {

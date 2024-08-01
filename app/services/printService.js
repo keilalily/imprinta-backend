@@ -5,9 +5,8 @@ const pdfPrinter = require('pdf-to-printer');
 const printerLong = 'Printer_A';
 const printerShort = 'Printer_B';
 
-const loadPDF = async (pdfPath) => {
-  const pdfBytes = await fs.readFile(pdfPath);
-  return PDFDocument.load(pdfBytes);
+const loadPDF = async (pdfBytes) => {
+  return await PDFDocument.load(pdfBytes);
 };
 
 const applyPaperSize = (pdfDoc, paperSizeIndex) => {
@@ -58,19 +57,25 @@ const printPDF = async (pdfBytes, printerName) => {
   await pdfPrinter.print(pdfBytes, { printer: printerName });
 };
 
-const processAndPrint = async (pdfPath, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies) => {
-  const pdfDoc = await loadPDF(pdfPath);
+const processAndPrint = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies) => {
+  try {
+    const pdfDoc = await loadPDF(pdfBytes);
   
-  if (paperSizeIndex !== undefined) applyPaperSize(pdfDoc, paperSizeIndex);
-  if (colorIndex === 1) await convertToGrayscale(pdfDoc);
-  if (pagesIndex === 1 && selectedPages.length > 0) selectPages(pdfDoc, selectedPages);
-  if (copies > 1) await duplicatePages(pdfDoc, copies);
+    if (paperSizeIndex !== undefined) applyPaperSize(pdfDoc, paperSizeIndex);
+    if (colorIndex === 1) await convertToGrayscale(pdfDoc);
+    if (pagesIndex === 1 && selectedPages.length > 0) selectPages(pdfDoc, selectedPages);
+    if (copies > 1) await duplicatePages(pdfDoc, copies);
 
-  const pdfBytes = await pdfDoc.save();
-  await fs.unlink(pdfPath);
+    const updatedPdfBytes = await pdfDoc.save();
 
-  const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
-  await printPDF(pdfBytes, printerName);
+    const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
+    await printPDF(updatedPdfBytes, printerName);
+
+    return { success: true, message: 'Printing successful!' };
+  } catch (error) {
+    console.error('Error processing and printing PDF:', error);
+    return { success: false, message: 'Printing failed!' };
+  }
 };
 
 module.exports = {
