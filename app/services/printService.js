@@ -6,7 +6,15 @@ const printerLong = 'Printer_A';
 const printerShort = 'Printer_B';
 
 const loadPDF = async (pdfBytes) => {
-  return await PDFDocument.load(pdfBytes);
+  // return await PDFDocument.load(pdfBytes);
+  try {
+    // Ensure pdfBytes is a Uint8Array
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    return pdfDoc;
+  } catch (error) {
+    console.error('Error loading PDF:', error);
+    throw error;
+  }
 };
 
 const applyPaperSize = (pdfDoc, paperSizeIndex) => {
