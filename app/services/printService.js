@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const { PDFDocument } = require('pdf-lib');
 const pdfPrinter = require('pdf-to-printer');
+const { completeTransaction } = require('../utils/transaction');
 
 const printerLong = 'Printer_A';
 const printerShort = 'Printer_B';
@@ -78,7 +79,7 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex,
 
     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
     await printPDF(updatedPdfBytes, printerName);
-
+    completeTransaction();
     return { success: true, message: 'Printing successful!' };
   } catch (error) {
     console.error('Error processing and printing PDF:', error);

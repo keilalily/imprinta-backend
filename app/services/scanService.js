@@ -1,6 +1,7 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 const { PDFDocument } = require('pdf-lib');
+const { completeTransaction } = require('../utils/transaction');
 
 let scanData = {
   imageData: null,
@@ -103,6 +104,6 @@ exports.sendScannedFile = async (email, imageData) => {
 
   scanData.imageData = null;
   scanData.email = null;
-
+  completeTransaction();
   return { success: true, messageId: info.messageId };
 };
