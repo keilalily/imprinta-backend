@@ -2,8 +2,16 @@ const printService = require('../services/printService');
 
 const printDocument = async (req, res) => {
   try {
-    const { pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies } = req.body;
-    await printService.processAndPrint(pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies);
+    const { printSettings, pdfBytes } = req.body;
+    const { paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies } = printSettings;
+    await printService.processAndPrint(
+      pdfBytes, 
+      paperSizeIndex, 
+      colorIndex, 
+      pagesIndex, 
+      selectedPages, 
+      copies
+    );
     res.json({ message: 'Printing successful' });
   } catch (error) {
     console.error('Error printing file:', error);
