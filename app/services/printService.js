@@ -35,7 +35,7 @@ const convertToGrayscale = async (inputPdfPath, outputPdfPath) => {
     const tempDir = path.dirname(inputPdfPath);
     const tempFilePrefix = path.basename(inputPdfPath, '.pdf') + '_temp';
 
-    const commandToPng = `"${process.env.PDFTOCAIRO_PATH}" -png "${inputPdfPath}" "${path.join(tempDir, tempFilePrefix)}"`;
+    const commandToPng = `"${process.env.PDFTOCAIRO_PATH}" -png -gray "${inputPdfPath}" "${path.join(tempDir, tempFilePrefix)}"`;
     console.log('Executing command:', commandToPng);
 
     await new Promise((resolve, reject) => {
@@ -73,11 +73,10 @@ const convertToGrayscale = async (inputPdfPath, outputPdfPath) => {
     // Step 3: Convert each PNG to a page in a new PDF
     const pdfDoc = await PDFDocument.create();
     for (const imagePath of imagePaths) {
-      const imageBuffer = await sharp(imagePath).grayscale().toBuffer();
-      const { width, height } = await sharp(imagePath).metadata();
-
-      const page = pdfDoc.addPage([width, height]);
+      const imageBuffer = await fs.readFile(imagePath);
       const img = await pdfDoc.embedPng(imageBuffer);
+      const { width, height } = img.scale(1);
+      const page = pdfDoc.addPage([width, height]);
       page.drawImage(img, { x: 0, y: 0, width, height });
     }
 
