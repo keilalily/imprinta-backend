@@ -9,81 +9,98 @@ let scanData = {
   email: null
 };
 
-exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
-  try {
-    await JSPM.JSPrintManager.start();
+// exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
+//   try {
+//     await JSPM.JSPrintManager.start();
 
-    // if (JSPM.JSPrintManager.isJSPrintManagerInstalled()) {
-    if (JSPM.JSPrintManager.websocket_status === JSPM.WSStatus.Open) {
-      console.log("JSPrintManager is running and connected.");
-      const scanners = JSPM.JSPrintManager.getPrintersList().filter((printer) => printer.deviceType === 'Scanner');
-      const selectedScanner = scanners[0];
+//     // if (JSPM.JSPrintManager.isJSPrintManagerInstalled()) {
+//     if (JSPM.JSPrintManager.websocket_status === JSPM.WSStatus.Open) {
+//       console.log("JSPrintManager is running and connected.");
+//       const scanners = JSPM.JSPrintManager.getPrintersList().filter((printer) => printer.deviceType === 'Scanner');
+//       const selectedScanner = scanners[0];
 
-      let paperSize = 'Letter';
-      if (paperSizeIndex === 1) {
-        paperSize = 'Legal';
-      }
+//       let paperSize = 'Letter';
+//       if (paperSizeIndex === 1) {
+//         paperSize = 'Legal';
+//       }
 
-      let colorMode = 'Color';
-      if (colorIndex === 1) {
-        colorMode = 'Grayscale';
-      }
+//       let colorMode = 'Color';
+//       if (colorIndex === 1) {
+//         colorMode = 'Grayscale';
+//       }
 
-      let resolution = 'High';
-      switch (resolutionIndex) {
-        case 1:
-          resolution = 'Medium';
-          break;
-        case 2:
-          resolution = 'Low';
-          break;
-        default:
-          break;
-      }
+//       let resolution = 'High';
+//       switch (resolutionIndex) {
+//         case 1:
+//           resolution = 'Medium';
+//           break;
+//         case 2:
+//           resolution = 'Low';
+//           break;
+//         default:
+//           break;
+//       }
 
-      JSPM.JSPrintManager.setScanOptions({
-        paperSize: paperSize,
-        colorMode: colorMode,
-        resolution: resolution,
-      });
+//       JSPM.JSPrintManager.setScanOptions({
+//         paperSize: paperSize,
+//         colorMode: colorMode,
+//         resolution: resolution,
+//       });
 
-      const scanResult = await JSPM.JSPrintManager.scanDocument(selectedScanner);
-      scanData.imageData = scanResult.imageData;
+//       const scanResult = await JSPM.JSPrintManager.scanDocument(selectedScanner);
+//       scanData.imageData = scanResult.imageData;
 
-      return { imageData: scanData.imageData };
-    } else {
-      throw new Error('JSPrintManager is not running.');
-    }
-  } catch (error) {
-    console.error("Error:", error.message);
-    throw new Error('Failed to initialize JSPrintManager or scan document.');
-  }
-};
+//       return { imageData: scanData.imageData };
+//     } else {
+//       throw new Error('JSPrintManager is not running.');
+//     }
+//   } catch (error) {
+//     console.error("Error:", error.message);
+//     throw new Error('Failed to initialize JSPrintManager or scan document.');
+//   }
+// };
 
-async function createPdfFromImage(imageData) {
+async function createPdfFromImage(imageData, paperSizeIndex) {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage();
+
+  const paperSizes = [
+    { width: 612, height: 792 }, // 8.5 x 11 inches
+    { width: 612, height: 1008 }, // 8.5 x 14 inches
+  ]
+
+  const { width: pageWidth, height: pageHeight } = paperSizes[paperSizeIndex];
+
+  const page = pdfDoc.addPage([pageWidth, pageHeight]);
 
   const image = await pdfDoc.embedPng(imageData);
-  const { width, height } = image.scale(1);
+  const { width: imageWidth, height: imageHeight } = image.scale(1);
+
+  // Calculate scaling to fit the image within the page dimensions
+  const scale = Math.min(pageWidth / imageWidth, pageHeight / imageHeight);
+  const scaledWidth = imageWidth * scale;
+  const scaledHeight = imageHeight * scale;
+
+  // Center the image on the page
+  const x = (pageWidth - scaledWidth) / 2;
+  const y = (pageHeight - scaledHeight) / 2;
 
   page.drawImage(image, {
-    x: 0,
-    y: page.getHeight() - height,
-    width,
-    height,
-  });
+    x,
+    y,
+    width: scaledWidth,
+    height: scaledHeight,
+  }); 
 
   const pdfBytes = await pdfDoc.save();
   return pdfBytes;
 }
 
-exports.sendScannedFile = async (email, imageData) => {
+exports.sendScannedFile = async (email, imageData, paperSizeIndex) => {
   if (!email || !imageData) {
     throw new Error('Email or image data not provided');
   }
 
-  const pdfBytes = await createPdfFromImage(imageData);
+  const pdfBytes = await createPdfFromImage(imageData, paperSizeIndex);
 
   let transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
