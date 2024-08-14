@@ -105,6 +105,7 @@ const renameGeneratedPdf = async (uploadDir, originalname) => {
 exports.processUpload = async (originalname, tempFilePath) => {
   const uploadDir = 'uploads';
   let pdfPath;
+  let shouldDeleteTempFile = false;
 
   try {
     // Check if the file is a DOCX file before attempting conversion
@@ -115,6 +116,7 @@ exports.processUpload = async (originalname, tempFilePath) => {
 
       // Rename the generated PDF file to match the original name
       pdfPath = await renameGeneratedPdf(uploadDir, originalname);
+      shouldDeleteTempFile = true;
     } else if (originalname.endsWith('.pdf')) {
       // If the file is already a PDF, just move it to the upload directory
       pdfPath = path.join(uploadDir, originalname);
@@ -140,13 +142,16 @@ exports.processUpload = async (originalname, tempFilePath) => {
     console.error('Error processing upload:', error);
     throw error;
   } finally {
-    try {
-      await fs.unlink(tempFilePath);
-      console.log(`Temporary file ${tempFilePath} deleted successfully.`);
-    } catch (unlinkError) {
-      console.error(`Error deleting temporary file ${tempFilePath}:`, unlinkError);
+    if (shouldDeleteTempFile && tempFilePath) {
+      try {
+        await fs.unlink(tempFilePath);
+        console.log(`Temporary file ${tempFilePath} deleted successfully.`);
+      } catch (unlinkError) {
+        console.error(`Error deleting temporary file ${tempFilePath}:`, unlinkError);
+      }
+    } else {
+      console.log('No tempFilePath provided, skipping deletion.');
     }
-
     if (pdfPath) {
       try {
         await fs.unlink(pdfPath);
