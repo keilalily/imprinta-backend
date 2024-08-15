@@ -10,17 +10,46 @@
 
 // const handleSerialData = (data, wss) => {
 //   console.log('Received data:', data);
-//   const matches = data.match(/Total Amount: (\d+)/);
-//   if (matches) {
-//     pulseCount = parseInt(matches[1], 10);
-//     amountInserted = pulseCount; // 1 pulse = 1 peso
-//     console.log('Pulse Count:', pulseCount);
-//     console.log('Amount Inserted:', amountInserted);
-//     wss.clients.forEach(client => {
-//       if (client.readyState === WebSocket.OPEN) {
-//         client.send(JSON.stringify({ "amountInserted": amountInserted }));
-//       }
-//     });
+//   // const matches = data.match(/Total Amount: (\d+)/);
+//   // if (matches) {
+//   //   pulseCount = parseInt(matches[1], 10);
+//   //   amountInserted = pulseCount; // 1 pulse = 1 peso
+//   //   console.log('Pulse Count:', pulseCount);
+//   //   console.log('Amount Inserted:', amountInserted);
+//   //   wss.clients.forEach(client => {
+//   //     if (client.readyState === WebSocket.OPEN) {
+//   //       client.send(JSON.stringify({ "amountInserted": amountInserted }));
+//   //     }
+//   //   });
+//   // }
+//   const message = data.toString().trim();
+
+//   if (message.startsWith('Total Amount:')) {
+//     const matches = message.match(/Total Amount: (\d+)/);
+//     if (matches) {
+//       pulseCount = parseInt(matches[1], 10);
+//       amountInserted = pulseCount; // 1 pulse = 1 peso
+//       console.log('Pulse Count:', pulseCount);
+//       console.log('Amount Inserted:', amountInserted);
+//       wss.clients.forEach(client => {
+//         if (client.readyState === WebSocket.OPEN) {
+//           client.send(JSON.stringify({ amountInserted }));
+//         }
+//       });
+//     }
+//   } else if (message.startsWith('Reset Complete:')) {
+//     const matches = message.match(/Reset Complete: (\d+)/);
+//     if (matches) {
+//       pulseCount = parseInt(matches[1], 10);
+//       amountInserted = pulseCount; // Reset amount
+//       console.log('Reset Pulse Count:', pulseCount);
+//       console.log('Reset Amount Inserted:', amountInserted);
+//       wss.clients.forEach(client => {
+//         if (client.readyState === WebSocket.OPEN) {
+//           client.send(JSON.stringify({ amountInserted }));
+//         }
+//       });
+//     }
 //   }
 // };
 
@@ -28,47 +57,3 @@
 // const getAmountInserted = () => amountInserted;
 
 // module.exports = { initSerialPort, handleSerialData, getPulseCount, getAmountInserted };
-
-// // // arduinoService.js
-
-// // const SerialPort = require('serialport');
-// // const Readline = require('@serialport/parser-readline');
-
-// // let pulseCount = 0;
-// // let amountInserted = 0.0;
-
-// // const initSerialPort = (wss) => {
-// //   const port = new SerialPort('COM3', {
-// //     baudRate: 9600,
-// //   });
-
-// //   const parser = port.pipe(new Readline({ delimiter: '\n' }));
-
-// //   parser.on('data', (data) => {
-// //     const pulses = parseInt(data.trim(), 10);
-// //     pulseCount += pulses;
-// //     amountInserted += pulses * 1.0;
-
-// //     wss.clients.forEach((client) => {
-// //       if (client.readyState === WebSocket.OPEN) {
-// //         client.send(JSON.stringify({ pulseCount, amountInserted }));
-// //       }
-// //     });
-// //   });
-// // };
-
-// // const getPulseCount = () => pulseCount;
-
-// // const getAmountInserted = () => amountInserted;
-
-// // const resetCounts = () => {
-// //   pulseCount = 0;
-// //   amountInserted = 0.0;
-// // };
-
-// // module.exports = {
-// //   initSerialPort,
-// //   getPulseCount,
-// //   getAmountInserted,
-// //   resetCounts,
-// // };

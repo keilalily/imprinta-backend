@@ -26,7 +26,7 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 // app.use('/api', arduinoRoutes);
 
 const server = http.createServer(app);
-// const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ server });
 
 // initSerialPort(wss);
 
