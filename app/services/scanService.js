@@ -1,13 +1,13 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
-const { PDFDocument } = require('pdf-lib');
+// const { PDFDocument } = require('pdf-lib');
 const { completeTransaction } = require('../utils/transaction');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
 let scanData = {
-  imageData: null,
+  fileData: null,
   email: null
 };
 
@@ -28,7 +28,6 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
     const naps2Path = process.env.NAPS2_PATH;
 
     const scanCommand = `"${naps2Path}" --noprofile --output "${outputFile}" --driver "wia" --device "Brother Scanner c1" --dpi "${resolution}" --bitdepth "${color}" --pagesize "${paperSize}"`;
-
 
     console.log('Executing command:', scanCommand);
     await new Promise((resolve, reject) => {
@@ -55,8 +54,10 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
       });
     });
 
+    scanData.fileData.push(pdfBytes);
+
     // Assuming you want to return the scanned data
-    return scanData.imageData;
+    return pdfBytes;
 
   } catch (error) {
     console.error("Error:", error.message);
