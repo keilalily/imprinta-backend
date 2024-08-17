@@ -1,42 +1,67 @@
 const fs = require('fs').promises;
 const path = require('path');
-const print = require('pdf-to-printer');
+const pdfPrinter = require('pdf-to-printer');
+const { PDFDocument } = require('pdf-lib');
 const { completeTransaction } = require('../utils/transaction');
 
-const PRINTER_LONG = 'Printer_A_Name'; // Replace with your long paper printer name
-const PRINTER_SHORT = 'Printer_B_Name'; // Replace with your short paper printer name
+const printerLong = 'Printer_A';
+const printerShort = 'Brother DCP-T420W';
 
-const saveImageAsPDF = async (imageData, filePath) => {
-  const pdfBuffer = Buffer.from(imageData, 'base64');
-  await fs.writeFile(filePath, pdfBuffer);
-};
-
-const determinePrinter = (paperSize) => {
-  switch (paperSize) {
-    case 'Legal':
-      return PRINTER_LONG;
-    case 'Letter':
-      return PRINTER_SHORT;
-    default:
-      throw new Error('Invalid paper size');
+const loadPDF = async (pdfBytes) => {
+  try {
+    // Ensure pdfBytes is a Uint8Array
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    return pdfDoc;
+  } catch (error) {
+    console.error('Error loading PDF:', error);
+    throw error;
   }
 };
 
-const printPDF = async (pdfPath, printer, copies) => {
-  await print(pdfPath, {
-    printer,
-    copies,
-  });
+const duplicatePages = async (pdfDoc, copies) => {
+  const originalPages = pdfDoc.getPages();
+  for (let copy = 1; copy < copies; copy++) {
+    for (let i = 0; i < originalPages.length; i++) {
+      const copiedPage = await pdfDoc.copyPage(originalPages[i]);
+      pdfDoc.addPage(copiedPage);
+    }
+  }
 };
 
-const processAndPrint = async (imageData, copies, paperSize) => {
-  const pdfPath = path.join(__dirname, 'scannedDocument.pdf');
+const printPDF = async (pdfBytes, printerName) => {
+  const tempFilePath = path.join(__dirname, 'temp', `print_${Date.now()}.pdf`);
+  try {
+    await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
+    await fs.writeFile(tempFilePath, pdfBytes);
+    await pdfPrinter.print(tempFilePath, { printer: printerName });
+    await fs.unlink(tempFilePath);
+  } catch (error) {
+    console.error('Error printing PDF:', error);
+    throw error;
+  }
+};
 
-  await saveImageAsPDF(imageData, pdfPath);
-  const printer = determinePrinter(paperSize);
-  await printPDF(pdfPath, printer, copies);
-  completeTransaction();
-  await fs.unlink(pdfPath); // Clean up the PDF file after printing
+const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
+  try {
+    let pdfDoc = await loadPDF(pdfBytes);
+
+    if (copies > 1) {
+      await duplicatePages(pdfDoc, copies);
+      console.log('Pages duplicated');
+    }
+    const updatedPdfBytes = await pdfDoc.save();
+
+    const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
+    await printPDF(updatedPdfBytes, printerName);
+    console.log('Printing started');
+
+    completeTransaction();
+    return { success: true, message: 'Printing successful!' };
+  } catch (error) {
+    console.error('Error in printing:', error);
+    return { success: false, message: `Printing failed: ${error.message}` };
+  }
+  
 };
 
 module.exports = {

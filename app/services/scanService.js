@@ -46,6 +46,7 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
         // Read the PDF file into a buffer
         try {
           const pdfBytes = fs.readFileSync(outputFile);
+          console.log('PDF file successfully converted into bytes.');
           resolve(pdfBytes);
         } catch (readError) {
           console.error('Failed to read scanned document:', readError.message);
@@ -54,9 +55,15 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
       });
     });
 
+    // Optionally, clean up the temporary file
+    fs.unlink(outputFile, (err) => {
+      if (err) {
+        console.error('Failed to delete temporary file:', err.message);
+      }
+    });
+
     scanData.fileData.push(pdfBytes);
 
-    // Assuming you want to return the scanned data
     return pdfBytes;
 
   } catch (error) {

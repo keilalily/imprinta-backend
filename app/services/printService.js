@@ -10,7 +10,6 @@ const printerLong = 'Printer_A';
 const printerShort = 'Brother DCP-T420W';
 
 const loadPDF = async (pdfBytes) => {
-  // return await PDFDocument.load(pdfBytes);
   try {
     // Ensure pdfBytes is a Uint8Array
     const pdfDoc = await PDFDocument.load(pdfBytes);
