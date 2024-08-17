@@ -22,8 +22,21 @@ const loadPDF = async (pdfBytes) => {
 
 const applyPaperSize = (pdfDoc, paperSizeIndex) => {
   if (paperSizeIndex === 1) {
-    const pages = pdfDoc.getPages();
-    pages.forEach(page => page.setSize(612, 1008)); // Legal size in points (8.5" x 14")
+    const newWidth = 612; // Width for Legal size in points
+    const newHeight = 1008; // Height for Legal size in points
+
+    pdfDoc.getPages().forEach(page => {
+      const { width, height } = page.getSize();
+
+      // Set the new page size
+      page.setSize(newWidth, newHeight);
+
+      // Calculate the vertical offset to reposition the content to start at the top
+      const offsetY = newHeight - height; // Moves content up to start at the top
+
+      // Reposition the content
+      page.translateContent(0, offsetY);
+    });
   }
 };
 
@@ -129,7 +142,7 @@ const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex
 
       finalPdfBytes = await fs.readFile(finalPdfPath);
   
-      return { success: true, message: 'Final PDF file prepared!', pdfBytes: finalPdfBytes };
+      return { success: true, pdfBytes: finalPdfBytes.toString('base64') };
     } catch (error) {
         console.error('Error processing PDF:', error);
         return { success: false, message: 'Processing failed!' };

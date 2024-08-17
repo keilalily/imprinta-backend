@@ -4,7 +4,7 @@ const modifyPdfPreview = async (req, res) => {
   try {
     const { printSettings, pdfBytes } = req.body;
     const { paperSizeIndex, colorIndex, pagesIndex, selectedPages } = printSettings;
-    await printService.modifyPdfPreview(
+    const result = await printService.modifyPdfPreview(
       pdfBytes, 
       paperSizeIndex, 
       colorIndex, 
@@ -13,7 +13,7 @@ const modifyPdfPreview = async (req, res) => {
     );
     if (result.success) {
       // Return the modified pdfBytes along with a success message
-      res.json({ message: result.message, pdfBytes: result.pdfBytes });
+      res.json({ pdfBytes: result.pdfBytes });
     } else {
       // Handle the case where modification failed
       res.status(500).json({ error: result.message });
