@@ -83,6 +83,77 @@ const duplicatePages = async (pdfDoc, copies) => {
   }
 };
 
+const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages) => {
+  let tempPdfPath;
+  let finalPdfPath;
+  let finalPdfBytes;
+  try {
+    console.log('Received PDF bytes length:', pdfBytes.length);
+    let pdfDoc = await loadPDF(pdfBytes);
+    console.log('PDF loaded successfully');
+  
+    console.log('pagesIndex:', pagesIndex);
+    console.log('selectedPages:', selectedPages);
+    console.log('paperSizeIndex:', paperSizeIndex);
+    console.log('colorIndex:', colorIndex);
+    
+      if (pagesIndex === 1 && selectedPages.length > 0) {
+        console.log('Number of pages before selection:', pdfDoc.getPages().length);
+        pdfDoc = await selectPages(pdfDoc, selectedPages);
+        console.log('Selected pages processed');
+        console.log('Number of pages after selection:', pdfDoc.getPages().length);
+      }
+      if (!pdfDoc) {
+        throw new Error('pdfDoc is undefined after selecting pages');
+      }
+      if (paperSizeIndex !== undefined) {
+        applyPaperSize(pdfDoc, paperSizeIndex);
+        console.log('Paper size applied');
+      }
+  
+      // Save the modified PDF to a temporary file
+      tempPdfPath = path.join(__dirname, 'temp', `temp_${Date.now()}.pdf`);
+      finalPdfPath = path.join(__dirname, 'temp', `final_${Date.now()}.pdf`);
+  
+      const updatedPdfBytes = await pdfDoc.save();
+      await fs.writeFile(tempPdfPath, updatedPdfBytes);
+      console.log('Temporary PDF file saved:', tempPdfPath); 
+  
+      if (colorIndex === 1) {
+        await convertToGrayscale(tempPdfPath, finalPdfPath);
+        console.log('Converted to grayscale:', finalPdfPath);
+      } else {
+        await fs.copyFile(tempPdfPath, finalPdfPath);
+        console.log('File copied to final path');
+      }
+
+      finalPdfBytes = await fs.readFile(finalPdfPath);
+  
+      return { success: true, message: 'Final PDF file prepared!', pdfBytes: finalPdfBytes };
+    } catch (error) {
+        console.error('Error processing PDF:', error);
+        return { success: false, message: 'Processing failed!' };
+    } finally {
+        // Clean up temporary files
+        if (tempPdfPath) {
+          try {
+            await fs.unlink(tempPdfPath);
+            console.log('Temporary file deleted:', tempPdfPath);
+          } catch (err) {
+            console.error('Error deleting temporary file:', tempPdfPath, err);
+          }
+        }
+        if (finalPdfPath) {
+          try {
+            await fs.unlink(finalPdfPath);
+            console.log('Final file deleted:', finalPdfPath);
+          } catch (err) {
+            console.error('Error deleting final file:', finalPdfPath, err);
+          }
+        }
+    }
+}
+
 const printPDF = async (pdfBytes, printerName) => {
   const tempFilePath = path.join(__dirname, 'temp', `print_${Date.now()}.pdf`);
   try {
@@ -96,60 +167,25 @@ const printPDF = async (pdfBytes, printerName) => {
   }
 };
 
-const processAndPrint = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies) => {
-  let tempPdfPath;
-  let finalPdfPath;
+const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
   try {
     console.log('Received PDF bytes length:', pdfBytes.length);
     let pdfDoc = await loadPDF(pdfBytes);
     console.log('PDF loaded successfully');
-
-    console.log('pagesIndex:', pagesIndex);
-    console.log('selectedPages:', selectedPages);
-    console.log('paperSizeIndex:', paperSizeIndex);
-    console.log('colorIndex:', colorIndex);
     console.log('copies:', copies);
   
-    if (pagesIndex === 1 && selectedPages.length > 0) {
-      console.log('Number of pages before selection:', pdfDoc.getPages().length);
-      pdfDoc = await selectPages(pdfDoc, selectedPages);
-      console.log('Selected pages processed');
-      console.log('Number of pages after selection:', pdfDoc.getPages().length);
-    }
-    if (!pdfDoc) {
-      throw new Error('pdfDoc is undefined after selecting pages');
-    }
-    if (paperSizeIndex !== undefined) {
-      applyPaperSize(pdfDoc, paperSizeIndex);
-      console.log('Paper size applied');
-    }
     if (copies > 1) {
       await duplicatePages(pdfDoc, copies);
       console.log('Pages duplicated');
     }
 
-    // Save the modified PDF to a temporary file
-    tempPdfPath = path.join(__dirname, 'temp', `temp_${Date.now()}.pdf`);
-    finalPdfPath = path.join(__dirname, 'temp', `final_${Date.now()}.pdf`);
-
-    const updatedPdfBytes = await pdfDoc.save();
-    await fs.writeFile(tempPdfPath, updatedPdfBytes);
-    console.log('Temporary PDF file saved:', tempPdfPath); 
-
-    if (colorIndex === 1) {
-      await convertToGrayscale(tempPdfPath, finalPdfPath);
-      console.log('Converted to grayscale:', finalPdfPath);
-    } else {
-      await fs.copyFile(tempPdfPath, finalPdfPath);
-      console.log('File copied to final path');
-    }
-    console.log('Final PDF file prepared:', finalPdfPath);
+    const updatedPdfBytes = await pdfDoc.save(); 
 
     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
     console.log('Number of pages before printing:', pdfDoc.getPages().length);
 
-    // await printPDF(await fs.readFile(finalPdfPath), printerName);
-    // console.log('Printing started');
+    await printPDF(updatedPdfBytes, printerName);
+    console.log('Printing started');
 
     completeTransaction();
     console.log('Transaction completed');
@@ -159,27 +195,94 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex,
   } catch (error) {
       console.error('Error processing and printing PDF:', error);
       return { success: false, message: 'Printing failed!' };
-  } finally {
-      // Clean up temporary files
-      if (tempPdfPath) {
-        try {
-          await fs.unlink(tempPdfPath);
-          console.log('Temporary file deleted:', tempPdfPath);
-        } catch (err) {
-          console.error('Error deleting temporary file:', tempPdfPath, err);
-        }
-      }
-      if (finalPdfPath) {
-        try {
-          await fs.unlink(finalPdfPath);
-          console.log('Final file deleted:', finalPdfPath);
-        } catch (err) {
-          console.error('Error deleting final file:', finalPdfPath, err);
-        }
-      }
   }
-};
+}
+
+// const processAndPrint = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies) => {
+//   let tempPdfPath;
+//   let finalPdfPath;
+//   try {
+//     console.log('Received PDF bytes length:', pdfBytes.length);
+//     let pdfDoc = await loadPDF(pdfBytes);
+//     console.log('PDF loaded successfully');
+
+//     console.log('pagesIndex:', pagesIndex);
+//     console.log('selectedPages:', selectedPages);
+//     console.log('paperSizeIndex:', paperSizeIndex);
+//     console.log('colorIndex:', colorIndex);
+//     console.log('copies:', copies);
+  
+//     if (pagesIndex === 1 && selectedPages.length > 0) {
+//       console.log('Number of pages before selection:', pdfDoc.getPages().length);
+//       pdfDoc = await selectPages(pdfDoc, selectedPages);
+//       console.log('Selected pages processed');
+//       console.log('Number of pages after selection:', pdfDoc.getPages().length);
+//     }
+//     if (!pdfDoc) {
+//       throw new Error('pdfDoc is undefined after selecting pages');
+//     }
+//     if (paperSizeIndex !== undefined) {
+//       applyPaperSize(pdfDoc, paperSizeIndex);
+//       console.log('Paper size applied');
+//     }
+//     if (copies > 1) {
+//       await duplicatePages(pdfDoc, copies);
+//       console.log('Pages duplicated');
+//     }
+
+//     // Save the modified PDF to a temporary file
+//     tempPdfPath = path.join(__dirname, 'temp', `temp_${Date.now()}.pdf`);
+//     finalPdfPath = path.join(__dirname, 'temp', `final_${Date.now()}.pdf`);
+
+//     const updatedPdfBytes = await pdfDoc.save();
+//     await fs.writeFile(tempPdfPath, updatedPdfBytes);
+//     console.log('Temporary PDF file saved:', tempPdfPath); 
+
+//     if (colorIndex === 1) {
+//       await convertToGrayscale(tempPdfPath, finalPdfPath);
+//       console.log('Converted to grayscale:', finalPdfPath);
+//     } else {
+//       await fs.copyFile(tempPdfPath, finalPdfPath);
+//       console.log('File copied to final path');
+//     }
+//     console.log('Final PDF file prepared:', finalPdfPath);
+
+//     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
+//     console.log('Number of pages before printing:', pdfDoc.getPages().length);
+
+//     // await printPDF(await fs.readFile(finalPdfPath), printerName);
+//     // console.log('Printing started');
+
+//     completeTransaction();
+//     console.log('Transaction completed');
+//     console.log('Coin Count: ')
+
+//     return { success: true, message: 'Printing successful!' };
+//   } catch (error) {
+//       console.error('Error processing and printing PDF:', error);
+//       return { success: false, message: 'Printing failed!' };
+//   } finally {
+//       // Clean up temporary files
+//       if (tempPdfPath) {
+//         try {
+//           await fs.unlink(tempPdfPath);
+//           console.log('Temporary file deleted:', tempPdfPath);
+//         } catch (err) {
+//           console.error('Error deleting temporary file:', tempPdfPath, err);
+//         }
+//       }
+//       if (finalPdfPath) {
+//         try {
+//           await fs.unlink(finalPdfPath);
+//           console.log('Final file deleted:', finalPdfPath);
+//         } catch (err) {
+//           console.error('Error deleting final file:', finalPdfPath, err);
+//         }
+//       }
+//   }
+// };
 
 module.exports = {
-  processAndPrint,
+  modifyPdfPreview,
+  processAndPrint
 };

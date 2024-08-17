@@ -12,6 +12,7 @@ let scanData = {
 };
 
 exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
+  let pdfBytes;
   try {
     const tempDir = path.join(__dirname, 'temp');
     if (!fs.existsSync(tempDir)) {
@@ -45,9 +46,9 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
 
         // Read the PDF file into a buffer
         try {
-          const pdfBytes = fs.readFileSync(outputFile);
+          pdfBytes = fs.readFileSync(outputFile);
           console.log('PDF file successfully converted into bytes.');
-          resolve(pdfBytes);
+          resolve();
         } catch (readError) {
           console.error('Failed to read scanned document:', readError.message);
           reject(new Error('Failed to read scanned document.'));
@@ -64,8 +65,7 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
 
     scanData.fileData.push(pdfBytes);
 
-    return pdfBytes;
-
+    return { success: true, message: 'Final PDF file prepared!', pdfBytes: pdfBytes };
   } catch (error) {
     console.error("Error:", error.message);
     throw new Error('Failed to initialize scan document.');
