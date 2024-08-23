@@ -6,10 +6,10 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-let scanData = {
-  fileData: null,
-  email: null
-};
+// let scanData = {
+//   fileData: null,
+//   email: null
+// };
 
 exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
   let pdfBytes;
@@ -63,9 +63,7 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
       }
     });
 
-    scanData.fileData.push(pdfBytes);
-
-    return { success: true, message: 'Final PDF file prepared!', pdfBytes: pdfBytes };
+    return { success: true, pdfBytes: pdfBytes.toString('base64') };
   } catch (error) {
     console.error("Error:", error.message);
     throw new Error('Failed to initialize scan document.');
@@ -177,8 +175,8 @@ exports.sendScannedFile = async (email, imageData) => {
 
   let info = await transporter.sendMail(mailOptions);
 
-  scanData.imageData = null;
-  scanData.email = null;
+  // scanData.imageData = null;
+  // scanData.email = null;
   completeTransaction();
   return { success: true, messageId: info.messageId };
 };

@@ -6,7 +6,7 @@ exports.scan = async (req, res) => {
     const result = await scanService.scanDocument(paperSizeIndex, colorIndex, resolutionIndex);
     if (result.success) {
       // Return the modified pdfBytes along with a success message
-      res.json({ message: result.message, pdfBytes: result.pdfBytes });
+      res.json({ pdfBytes: result.pdfBytes });
     } else {
       // Handle the case where modification failed
       res.status(500).json({ error: result.message });
