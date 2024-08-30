@@ -209,6 +209,7 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
     return { success: true, message: 'Printing successful!' };
   } catch (error) {
       console.error('Error processing and printing PDF:', error);
+      completeTransaction();
       return { success: false, message: 'Printing failed!' };
   }
 }

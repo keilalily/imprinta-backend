@@ -8,8 +8,8 @@ const { exec } = require('child_process'); // Import child_process module
 // const wss = new WebSocket.Server({ noServer: true });
 let wss;
 
-exports.setWebSocketServer = (server) => {
-  wss = new WebSocket.Server({ server });
+exports.setWebSocketServer = (webSocketServer) => {
+  wss = webSocketServer;
 };
 
 const convertDocxToPdf = (inputPath, outputDir) => {
