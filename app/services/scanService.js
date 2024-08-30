@@ -144,12 +144,13 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
 //   return { success: true, messageId: info.messageId };
 // };
 
-exports.sendScannedFile = async (email, imageData) => {
-  if (!email || !imageData) {
+exports.sendScannedFile = async (email, fileData) => {
+  if (!email || !fileData) {
     throw new Error('Email or image data not provided');
   }
 
   let transporter = nodemailer.createTransport({
+    service: process.env.SMTP_SERVICE,
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
     secure: process.env.SMTP_SECURE === 'true',
@@ -167,7 +168,7 @@ exports.sendScannedFile = async (email, imageData) => {
     attachments: [
       {
         filename: `scanned_document_${Date.now()}.pdf`,
-        content: imageData,
+        content: fileData,
         encoding: 'base64',
       },
     ],
@@ -175,8 +176,6 @@ exports.sendScannedFile = async (email, imageData) => {
 
   let info = await transporter.sendMail(mailOptions);
 
-  // scanData.imageData = null;
-  // scanData.email = null;
   completeTransaction();
   return { success: true, messageId: info.messageId };
 };

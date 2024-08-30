@@ -19,8 +19,8 @@ exports.scan = async (req, res) => {
 
 exports.sendScannedFile = async (req, res) => {
   try {
-    const { email, imageData } = req.body;
-    const result = await scanService.sendScannedFile(email, imageData);
+    const { email, fileData } = req.body;
+    const result = await scanService.sendScannedFile(email, fileData);
     res.json(result);
   } catch (error) {
     console.error('Error sending email:', error);

@@ -1,7 +1,7 @@
-// const { pulseCount, amountInserted } = require('../services/arduinoService');
+const { pulseCount, amountInserted } = require('../services/arduinoService');
 
-// const getCoinStatus = (req, res) => {
-//   res.json({ pulseCount, amountInserted });
-// };
+const getCoinStatus = (req, res) => {
+  res.json({ pulseCount, amountInserted });
+};
 
-// module.exports = { getCoinStatus };
+module.exports = { getCoinStatus };

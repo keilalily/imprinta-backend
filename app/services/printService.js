@@ -6,8 +6,8 @@ const { PDFDocument } = require('pdf-lib');
 const pdfPrinter = require('pdf-to-printer');
 const { completeTransaction } = require('../utils/transaction');
 
-const printerLong = 'Printer_A';
-const printerShort = 'Brother DCP-T420W';
+const printerLong = 'EPSON L3250 Series';
+const printerShort = 'EPSON L3250 Series';
 
 const loadPDF = async (pdfBytes) => {
   try {
@@ -90,7 +90,7 @@ const duplicatePages = async (pdfDoc, copies) => {
   const originalPages = pdfDoc.getPages();
   for (let copy = 1; copy < copies; copy++) {
     for (let i = 0; i < originalPages.length; i++) {
-      const copiedPage = await pdfDoc.copyPage(originalPages[i]);
+      const [copiedPage] = await pdfDoc.copyPages(pdfDoc, [i]);
       pdfDoc.addPage(copiedPage);
     }
   }
@@ -188,7 +188,9 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
     console.log('copies:', copies);
   
     if (copies > 1) {
-      await duplicatePages(pdfDoc, copies);
+      console.log(pdfDoc, 'prev doc');
+      const updateFile = await duplicatePages(pdfDoc, copies);
+      console.log(updateFile, 'updated');
       console.log('Pages duplicated');
     }
 

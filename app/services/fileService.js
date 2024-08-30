@@ -5,7 +5,12 @@ const WebSocket = require('ws');
 const { PDFDocument } = require('pdf-lib');
 const { exec } = require('child_process'); // Import child_process module
 
-const wss = new WebSocket.Server({ noServer: true });
+// const wss = new WebSocket.Server({ noServer: true });
+let wss;
+
+exports.setWebSocketServer = (server) => {
+  wss = new WebSocket.Server({ server });
+};
 
 const convertDocxToPdf = (inputPath, outputDir) => {
   return new Promise((resolve, reject) => {
