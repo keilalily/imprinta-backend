@@ -8,29 +8,17 @@ const initSerialPort = (wss) => {
   parser.on('data', (data) => handleSerialData(data, wss));
 };
 
-const handleSerialData = (data, wss) => {
-  console.log('Received data:', data);
-  // const matches = data.match(/Total Amount: (\d+)/);
-  // if (matches) {
-  //   pulseCount = parseInt(matches[1], 10);
-  //   amountInserted = pulseCount; // 1 pulse = 1 peso
-  //   console.log('Pulse Count:', pulseCount);
-  //   console.log('Amount Inserted:', amountInserted);
-  //   wss.clients.forEach(client => {
-  //     if (client.readyState === WebSocket.OPEN) {
-  //       client.send(JSON.stringify({ "amountInserted": amountInserted }));
-  //     }
-  //   });
-  // }
-  const message = data.toString().trim();
+  const handleSerialData = (data, wss) => {
+    console.log('Received data:', data);
+    const message = data.toString().trim();
 
-  if (message.startsWith('Total Amount:')) {
-    const matches = message.match(/Total Amount: (\d+)/);
-    if (matches) {
-      pulseCount = parseInt(matches[1], 10);
-      amountInserted = pulseCount; // 1 pulse = 1 peso
-      console.log('Pulse Count:', pulseCount);
-      console.log('Amount Inserted:', amountInserted);
+    if (message.startsWith('Total Amount:')) {
+      const matches = message.match(/Total Amount: (\d+)/);
+      if (matches) {
+        pulseCount = parseInt(matches[1], 10);
+        amountInserted = pulseCount; // 1 pulse = 1 peso
+        console.log('Pulse Count:', pulseCount);
+        console.log('Amount Inserted:', amountInserted);
       wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ amountInserted }));

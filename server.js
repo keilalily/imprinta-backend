@@ -28,7 +28,6 @@ app.use('/api', arduinoRoutes);
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// initSerialPort(wss);
 // Initialize Arduino and File Service with the WebSocket server
 initSerialPort(wss);
 setWebSocketServer(wss);

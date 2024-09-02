@@ -172,10 +172,17 @@ const printPDF = async (pdfBytes, printerName) => {
   try {
     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
     await fs.writeFile(tempFilePath, pdfBytes);
-    await pdfPrinter.print(tempFilePath, { printer: printerName });
+    const printResult = await pdfPrinter.print(tempFilePath, { printer: printerName });
+    
+    if (!printResult) {
+      throw new Error('Printing failed. No printer connected or other issue.');
+    }
+    
     await fs.unlink(tempFilePath);
+    return true;
   } catch (error) {
     console.error('Error printing PDF:', error);
+    await fs.unlink(tempFilePath);
     throw error;
   }
 };
@@ -199,7 +206,10 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
     console.log('Number of pages before printing:', pdfDoc.getPages().length);
 
-    await printPDF(updatedPdfBytes, printerName);
+    const printSuccess = await printPDF(updatedPdfBytes, printerName);
+    if (!printSuccess) {
+      throw new Error('Printing failed.');
+    }
     console.log('Printing started');
 
     completeTransaction();
