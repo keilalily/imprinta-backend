@@ -1,3 +1,4 @@
+
 const inventoryService = require('../services/inventoryService');
 
 exports.updateInventory = async (req, res) => {
