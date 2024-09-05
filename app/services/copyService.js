@@ -22,7 +22,7 @@ const duplicatePages = async (pdfDoc, copies) => {
   const originalPages = pdfDoc.getPages();
   for (let copy = 1; copy < copies; copy++) {
     for (let i = 0; i < originalPages.length; i++) {
-      const copiedPage = await pdfDoc.copyPage(originalPages[i]);
+      const [copiedPage] = await pdfDoc.copyPages(pdfDoc, [i]);
       pdfDoc.addPage(copiedPage);
     }
   }
@@ -52,8 +52,11 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
     const updatedPdfBytes = await pdfDoc.save();
 
     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
-    await printPDF(updatedPdfBytes, printerName);
-    console.log('Printing started');
+
+    const printSuccess = await printPDF(updatedPdfBytes, printerName);
+    if (!printSuccess) {
+      throw new Error('Printing failed.');
+    }
 
     completeTransaction();
     return { success: true, message: 'Printing successful!' };
