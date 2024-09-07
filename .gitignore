@@ -13,3 +13,4 @@ benchmarks/graphs
 
 # dotenv
 .env
+package.json

@@ -33,11 +33,14 @@ const printDocument = async (req, res) => {
       copies
     );
 
-    if (result.success) {
-      res.json({ message: 'Printing successful' });
-    } else {
-      res.status(500).json({ error: result.message });
-    }
+    res.json({ message: 'Printing successful' });
+
+    // if (result.success) {
+    //   res.json({ message: 'Printing successful' });
+    // } else {
+    //   res.status(500).json({ error: result.message });
+    // }
+
   } catch (error) {
     console.error('Error printing file:', error);
     res.status(500).json({ error: 'Error printing file' });

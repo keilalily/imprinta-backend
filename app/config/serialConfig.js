@@ -2,7 +2,7 @@ const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 
 const port = new SerialPort({
-  path: 'COM3', // Replace with your Arduino's serial port
+  path: 'COM5', // Replace with your Arduino's serial port
   baudRate: 9600
 });
 
