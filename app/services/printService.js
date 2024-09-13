@@ -180,12 +180,7 @@ const printPDF = async (pdfBytes, printerName) => {
   try {
     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
     await fs.writeFile(tempFilePath, pdfBytes);
-    const printResult = await pdfPrinter.print(tempFilePath, { printer: printerName });
-    
-    if (!printResult) {
-      throw new Error('Printing failed. No printer connected or other issue.');
-    }
-    
+    await pdfPrinter.print(tempFilePath, { printer: printerName });
     await fs.unlink(tempFilePath);
     return true;
   } catch (error) {

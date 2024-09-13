@@ -1,4 +1,4 @@
-const db = require('../config/firebaseConfig');
+const { db } = require('../config/firebaseConfig');
 const ref = db.ref("/Pricing");
 
 exports.getPricing = async () => {

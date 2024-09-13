@@ -8,9 +8,12 @@ const serviceAccount = JSON.parse(fs.readFileSync(path.resolve(serviceAccountPat
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: process.env.FIREBASE_DATABASE_URL
+  databaseURL: process.env.FIREBASE_DATABASE_URL,
 });
 
 const db = admin.database();
+const firestore = admin.firestore();
 
-module.exports = db;
+module.exports = { db, firestore };
+
+// module.exports = db;
