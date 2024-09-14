@@ -1,13 +1,14 @@
 const { db } = require('../config/firebaseConfig'); // Import the initialized Firebase Admin instance
-const ref = db.ref("/Inventory");
+const inventoryRef = db.ref("/Inventory");
+const salesRef = db.ref("/TotalSales");
 
 const updateInventory = async (data) => {
   console.log('Updating inventory with data:', data); // Log the data being saved
-  await ref.set(data);
+  await inventoryRef.set(data);
 };
 
 const getInventory = async () => {
-  const snapshot = await ref.once('value');
+  const snapshot = await inventoryRef.once('value');
   console.log('Fetched inventory data:', snapshot.val()); // Log the fetched data
   return snapshot.val();
 };
