@@ -14,30 +14,29 @@ const inventoryRoutes = require('./app/routes/inventoryRoutes');
 const transactionRoutes = require('./app/routes/transactionRoutes');
 const { setWebSocketServer } = require('./app/services/fileService');
 
-// Arduino Code
-const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
-const arduinoRoutes = require('./app/routes/arduinoRoutes');
+// // Arduino Code
+// const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
+// const arduinoRoutes = require('./app/routes/arduinoRoutes');
 
 const app = express();
 app.use(cors());
 app.use('/uploads', express.static('uploads'));
-// app.use(express.json());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-app.use('/api', arduinoRoutes);
+// app.use('/api', arduinoRoutes);
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 // Initialize Arduino and File Service with the WebSocket server
-initSerialPort(wss);
+// initSerialPort(wss);
 setWebSocketServer(wss);
 
-wss.on('connection', (ws) => {
-  console.log('New client connected');
-  ws.send(JSON.stringify({ pulseCount: getPulseCount(), amountInserted: getAmountInserted() }));
-});
+// wss.on('connection', (ws) => {
+//   console.log('New client connected');
+//   ws.send(JSON.stringify({ pulseCount: getPulseCount(), amountInserted: getAmountInserted() }));
+// });
 
 app.use('/admin', adminRoutes);
 app.use('/file', fileRoutes);
