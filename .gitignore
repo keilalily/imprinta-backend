@@ -10,3 +10,8 @@ coverage
 
 # Benchmarking
 benchmarks/graphs
+
+# dotenv
+.env
+package.json
+>>>>>>> 7a3e779e5720226e9d9642468005af7cb0fdc81c

@@ -34,7 +34,6 @@ const printDocument = async (req, res) => {
     );
 
     res.json({ message: 'Printing successful' });
-
   } catch (error) {
     console.error('Error printing file:', error);
     res.status(500).json({ error: 'Error printing file' });
