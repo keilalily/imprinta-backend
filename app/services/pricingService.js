@@ -1,27 +1,4 @@
-// let pricingData = {
-//     longBondPrice: '',
-//     shortBondPrice: '',
-//     coloredPrice: '',
-//     grayscalePrice: '',
-//     highResolutionPrice: '',
-//     mediumResolutionPrice: '',
-//     lowResolutionPrice: ''
-//   };
-  
-//   const getPricingData = () => {
-//     return pricingData;
-//   };
-  
-//   const setPricingData = (newPricingData) => {
-//     pricingData = newPricingData;
-//   };
-  
-//   module.exports = {
-//     getPricingData,
-//     setPricingData,
-//   };
-  
-const db = require('../../config');
+const { db } = require('../config/firebaseConfig');
 const ref = db.ref("/Pricing");
 
 exports.getPricing = async () => {

@@ -1,98 +1,94 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
-const { PDFDocument, rgb } = require('pdf-lib');
-
-let scanData = {
-  imageData: null,
-  email: null
-};
+const { completeTransaction } = require('../utils/transaction');
+const { exec } = require('child_process');
+const path = require('path');
+const fs = require('fs');
 
 exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
-  const jsPrintManager = new JSPrintManager();
-
-  if (jsPrintManager.isJSPrintManagerInstalled()) {
-    const scanners = jsPrintManager.getPrintersList().filter((printer) => printer.deviceType === 'Scanner');
-    const selectedScanner = scanners[0];
-
-    let paperSize = 'Letter';
-    if (paperSizeIndex === 1) {
-      paperSize = 'Legal';
+  let pdfBytes;
+  try {
+    const tempDir = path.join(__dirname, 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
     }
+    let paperSize = paperSizeIndex === 0 ? 'Letter' : 'Legal';
+    let color = colorIndex === 0 ? 'Color' : 'Gray';
+    let resolution = resolutionIndex === 0 ? '400' :
+                      resolutionIndex === 1 ? '300' : '200';
 
-    let colorMode = 'Color';
-    if (colorIndex === 1) {
-      colorMode = 'Grayscale';
-    }
+    const outputFile = path.join(tempDir, `scanned_document_${Date.now()}.pdf`);
+    console.log(`Output file path: ${outputFile}`);
 
-    let resolution = 'High';
-    switch (resolutionIndex) {
-      case 1:
-        resolution = 'Medium';
-        break;
-      case 2:
-        resolution = 'Low';
-        break;
-      default:
-        break;
-    }
+    const naps2Path = process.env.NAPS2_PATH;
 
-    jsPrintManager.setScanOptions({
-      paperSize: paperSize,
-      colorMode: colorMode,
-      resolution: resolution,
+    const scanCommand = `"${naps2Path}" --noprofile --output "${outputFile}" --driver "wia" --device "EPSON L3250 Series" --dpi "${resolution}" --bitdepth "${color}" --pagesize "${paperSize}"`;
+
+    console.log('Executing command:', scanCommand);
+    await new Promise((resolve, reject) => {
+      exec(scanCommand, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error: ${error.message}`);
+          return reject(new Error('Failed to scan document.'));
+        }
+        if (stderr) {
+          console.error(`Stderr: ${stderr}`);
+          return reject(new Error('Error during scanning.'));
+        }
+
+        console.log('Scan completed successfully:', stdout);
+
+        // Read the PDF file into a buffer
+        try {
+          pdfBytes = fs.readFileSync(outputFile);
+          console.log('PDF file successfully converted into bytes.');
+          resolve();
+        } catch (readError) {
+          console.error('Failed to read scanned document:', readError.message);
+          reject(new Error('Failed to read scanned document.'));
+        }
+      });
     });
 
-    const scanResult = await jsPrintManager.scanDocument(selectedScanner);
-    scanData.imageData = scanResult.imageData;
+    // Optionally, clean up the temporary file
+    fs.unlink(outputFile, (err) => {
+      if (err) {
+        console.error('Failed to delete temporary file:', err.message);
+      }
+    });
 
-    return { imageData: scanData.imageData };
+    return { success: true, pdfBytes: pdfBytes.toString('base64') };
+  } catch (error) {
+    console.error("Error:", error.message);
+    throw new Error('Failed to initialize scan document.');
   }
-  throw new Error('JSPrintManager is not installed');
 };
 
-async function createPdfFromImage(imageData) {
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage();
-
-  const image = await pdfDoc.embedPng(imageData);
-  const { width, height } = image.scale(1);
-
-  page.drawImage(image, {
-    x: 0,
-    y: page.getHeight() - height,
-    width,
-    height,
-  });
-
-  const pdfBytes = await pdfDoc.save();
-  return pdfBytes;
-}
-
-exports.sendScannedFile = async (email, imageData) => {
-  if (!email || !imageData) {
+exports.sendScannedFile = async (email, fileData) => {
+  if (!email || !fileData) {
     throw new Error('Email or image data not provided');
   }
 
-  const pdfBytes = await createPdfFromImage(imageData);
-
   let transporter = nodemailer.createTransport({
-    host: 'smtp.example.com',
-    port: 587,
-    secure: false,
+    service: process.env.SMTP_SERVICE,
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: 'your_email@example.com',
-      pass: 'your_email_password',
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
     },
   });
 
   let mailOptions = {
-    from: '"Vendo Printing Machine" <your_email@example.com>',
+    from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Your Scanned Document',
     text: 'Please find the scanned document attached.',
     attachments: [
       {
         filename: `scanned_document_${Date.now()}.pdf`,
-        content: pdfBytes,
+        content: Buffer.isBuffer(fileData) ? fileData : Buffer.from(fileData, 'base64'),
         encoding: 'base64',
       },
     ],
@@ -100,8 +96,6 @@ exports.sendScannedFile = async (email, imageData) => {
 
   let info = await transporter.sendMail(mailOptions);
 
-  scanData.imageData = null;
-  scanData.email = null;
-
+  completeTransaction();
   return { success: true, messageId: info.messageId };
 };

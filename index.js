@@ -6,6 +6,21 @@ const app= express();
 app.use(express.json());
 app.use(cors());
 
+const functions = require('firebase-functions');
+const { calculateTotalPrint } = require('./services/totalSalesService');
+
+exports.updateTotalPrint = functions.firestore
+    .document('dailyReportSales/{docId}')
+    .onWrite(async (change, context) => {
+        try {
+            console.log('Triggering Cloud Function...');
+            const result = await calculateTotalPrint();
+            console.log('Total Print Amount:', result);
+            return result;
+        } catch (error) {
+            console.error('Error in Cloud Function:', error);
+        }
+    });
 const admin = require('firebase-admin');
 const bcrypt = require('bcryptjs');
 
