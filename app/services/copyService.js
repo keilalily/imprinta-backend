@@ -4,8 +4,8 @@ const pdfPrinter = require('pdf-to-printer');
 const { PDFDocument } = require('pdf-lib');
 const { completeTransaction } = require('../utils/transaction');
 
-const printerLong = 'Printer_A';
-const printerShort = 'Brother DCP-T420W';
+const printerLong = 'EPSON L3250 Series';
+const printerShort = 'EPSON L3250 Series';
 
 const loadPDF = async (pdfBytes) => {
   try {
@@ -22,7 +22,7 @@ const duplicatePages = async (pdfDoc, copies) => {
   const originalPages = pdfDoc.getPages();
   for (let copy = 1; copy < copies; copy++) {
     for (let i = 0; i < originalPages.length; i++) {
-      const copiedPage = await pdfDoc.copyPage(originalPages[i]);
+      const [copiedPage] = await pdfDoc.copyPages(pdfDoc, [i]);
       pdfDoc.addPage(copiedPage);
     }
   }
@@ -33,10 +33,14 @@ const printPDF = async (pdfBytes, printerName) => {
   try {
     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
     await fs.writeFile(tempFilePath, pdfBytes);
-    await pdfPrinter.print(tempFilePath, { printer: printerName });
+    const printResult = await pdfPrinter.print(tempFilePath, { printer: printerName });
+    console.log('Print result:', printResult);
+    
     await fs.unlink(tempFilePath);
+    return true;
   } catch (error) {
     console.error('Error printing PDF:', error);
+    await fs.unlink(tempFilePath);
     throw error;
   }
 };
@@ -46,14 +50,18 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
     let pdfDoc = await loadPDF(pdfBytes);
 
     if (copies > 1) {
-      await duplicatePages(pdfDoc, copies);
+      const updateFile = await duplicatePages(pdfDoc, copies);
+      console.log(updateFile, 'updated');
       console.log('Pages duplicated');
     }
     const updatedPdfBytes = await pdfDoc.save();
 
     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
-    await printPDF(updatedPdfBytes, printerName);
-    console.log('Printing started');
+
+    const printSuccess = await printPDF(updatedPdfBytes, printerName);
+    if (!printSuccess) {
+      throw new Error('Printing failed.');
+    }
 
     completeTransaction();
     return { success: true, message: 'Printing successful!' };

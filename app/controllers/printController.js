@@ -27,7 +27,7 @@ const modifyPdfPreview = async (req, res) => {
 const printDocument = async (req, res) => {
   try {
     const { pdfBytes, paperSizeIndex, copies } = req.body;
-    const result = await printService.processAndPrint(
+    await printService.processAndPrint(
       pdfBytes, 
       paperSizeIndex,
       copies

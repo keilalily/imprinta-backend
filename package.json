@@ -15,7 +15,7 @@
     "are-we-there-yet": "^2.0.0",
     "array-flatten": "^1.1.1",
     "arrify": "^2.0.1",
-    "async": "^3.2.5",
+    "async": "^3.2.6",
     "async-retry": "^1.3.3",
     "asynckit": "^0.4.0",
     "balanced-match": "^1.0.2",
@@ -34,10 +34,10 @@
     "canvas": "^2.11.2",
     "chownr": "^2.0.0",
     "cliui": "^8.0.1",
-    "color": "^4.2.3",
+
     "color-convert": "^2.0.1",
     "color-name": "^1.1.4",
-    "color-string": "^1.9.1",
+
     "color-support": "^1.1.3",
     "combined-stream": "^1.0.8",
     "concat-map": "^0.0.1",
@@ -68,7 +68,9 @@
     "engine.io-parser": "^5.2.3",
     "es-define-property": "^1.0.0",
     "es-errors": "^1.3.0",
-    "escalade": "^3.1.2",
+
+    "escalade": "^3.2.0",
+
     "escape-html": "^1.0.3",
     "etag": "^1.8.1",
     "event-target-shim": "^5.0.1",
@@ -76,11 +78,13 @@
     "extend": "^3.0.2",
     "farmhash-modern": "^1.1.0",
     "fast-deep-equal": "^3.1.3",
-    "fast-xml-parser": "^4.4.0",
+
+    "fast-xml-parser": "^4.5.0",
     "faye-websocket": "^0.11.4",
     "finalhandler": "^1.2.0",
-    "firebase": "^10.12.4",
-    "firebase-admin": "^12.3.0",
+    "firebase": "^10.13.1",
+    "firebase-admin": "^12.4.0",
+
     "form-data": "^2.5.1",
     "forwarded": "^0.2.0",
     "fresh": "^0.5.2",
@@ -91,13 +95,17 @@
     "function-bind": "^1.1.2",
     "functional-red-black-tree": "^1.0.1",
     "gauge": "^3.0.2",
-    "gaxios": "^6.7.0",
+
+    "gaxios": "^6.7.1",
+
     "gcp-metadata": "^6.1.0",
     "get-caller-file": "^2.0.5",
     "get-intrinsic": "^1.2.4",
     "glob": "^7.2.3",
-    "google-auth-library": "^9.11.0",
-    "google-gax": "^4.3.8",
+
+    "google-auth-library": "^9.14.1",
+    "google-gax": "^4.4.1",
+
     "gopd": "^1.0.1",
     "graceful-fs": "^4.2.11",
     "gtoken": "^7.1.0",
@@ -116,7 +124,8 @@
     "inflight": "^1.0.6",
     "inherits": "^2.0.4",
     "ipaddr.js": "^1.9.1",
-    "is-arrayish": "^0.3.2",
+
+
     "is-fullwidth-code-point": "^3.0.0",
     "is-stream": "^2.0.1",
     "isarray": "^1.0.0",
@@ -156,15 +165,17 @@
     "mkdirp": "^0.5.6",
     "ms": "^2.0.0",
     "multer": "^1.4.5-lts.1",
+
+    "mv": "^2.1.1",
     "nan": "^2.20.0",
+    "ncp": "^2.0.0",
     "negotiator": "^0.6.3",
     "node-addon-api": "^5.1.0",
-    "node-ensure": "^0.0.0",
     "node-fetch": "^2.7.0",
     "node-forge": "^1.3.1",
     "node-gyp-build": "^4.6.0",
-    "node-printer": "^1.0.4",
-    "nodemailer": "^6.9.14",
+    "nodemailer": "^6.9.15",
+
     "nopt": "^5.0.0",
     "npmlog": "^5.0.1",
     "object-assign": "^4.1.1",
@@ -180,13 +191,14 @@
     "path-is-absolute": "^1.0.1",
     "path-to-regexp": "^0.1.7",
     "pdf-lib": "^1.17.1",
-    "pdf-parse": "^1.1.1",
     "pdf-to-printer": "^5.6.0",
     "pdf2image": "^1.2.3",
     "process": "^0.11.10",
     "process-nextick-args": "^2.0.1",
     "proto3-json-serializer": "^2.0.2",
-    "protobufjs": "^7.3.2",
+
+    "protobufjs": "^7.4.0",
+
     "proxy-addr": "^2.0.7",
     "qs": "^6.11.0",
     "range-parser": "^1.2.1",
@@ -198,7 +210,7 @@
     "rimraf": "^3.0.2",
     "safe-buffer": "^5.2.1",
     "safer-buffer": "^2.1.2",
-    "safevalues": "^0.6.0",
+
     "semver": "^7.6.3",
     "send": "^0.18.0",
     "serialport": "^12.0.0",
@@ -206,12 +218,12 @@
     "set-blocking": "^2.0.0",
     "set-function-length": "^1.2.2",
     "setprototypeof": "^1.2.0",
-    "sharp": "^0.33.4",
+
     "side-channel": "^1.0.6",
     "signal-exit": "^3.0.7",
     "simple-concat": "^1.0.1",
     "simple-get": "^3.1.1",
-    "simple-swizzle": "^0.2.2",
+
     "socket.io": "^4.7.5",
     "socket.io-adapter": "^2.5.5",
     "socket.io-parser": "^4.2.4",
@@ -229,14 +241,16 @@
     "tmp": "^0.2.3",
     "toidentifier": "^1.0.1",
     "tr46": "^0.0.3",
-    "tslib": "^2.6.3",
+
+    "tslib": "^2.7.0",
     "type-is": "^1.6.18",
     "typedarray": "^0.0.6",
-    "underscore": "^1.13.7",
-    "undici": "^5.28.4",
-    "undici-types": "^5.26.5",
+    "undici": "^6.19.7",
+    "undici-types": "^6.19.8",
     "universalify": "^2.0.1",
     "unpipe": "^1.0.0",
+    "usb": "^2.13.0",
+
     "util": "^0.10.4",
     "util-deprecate": "^1.0.2",
     "utils-merge": "^1.0.1",

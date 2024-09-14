@@ -31,6 +31,14 @@ const applyPaperSize = (pdfDoc, paperSizeIndex) => {
       // Set the new page size
       page.setSize(newWidth, newHeight);
 
+      // Adjust content to fit the new page size
+      // Calculate scale factors for width and height
+      const scaleX = newSize.width / width;
+      const scaleY = newSize.height / height;
+
+      // Scale content to fit new page size
+      page.scaleContent(scaleX, scaleY);
+
       // Calculate the vertical offset to reposition the content to start at the top
       const offsetY = newHeight - height; // Moves content up to start at the top
 
@@ -172,12 +180,7 @@ const printPDF = async (pdfBytes, printerName) => {
   try {
     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
     await fs.writeFile(tempFilePath, pdfBytes);
-    const printResult = await pdfPrinter.print(tempFilePath, { printer: printerName });
-    
-    if (!printResult) {
-      throw new Error('Printing failed. No printer connected or other issue.');
-    }
-    
+    await pdfPrinter.print(tempFilePath, { printer: printerName });
     await fs.unlink(tempFilePath);
     return true;
   } catch (error) {
@@ -219,94 +222,9 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
     return { success: true, message: 'Printing successful!' };
   } catch (error) {
       console.error('Error processing and printing PDF:', error);
-      completeTransaction();
       return { success: false, message: 'Printing failed!' };
   }
 }
-
-// const processAndPrint = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies) => {
-//   let tempPdfPath;
-//   let finalPdfPath;
-//   try {
-//     console.log('Received PDF bytes length:', pdfBytes.length);
-//     let pdfDoc = await loadPDF(pdfBytes);
-//     console.log('PDF loaded successfully');
-
-//     console.log('pagesIndex:', pagesIndex);
-//     console.log('selectedPages:', selectedPages);
-//     console.log('paperSizeIndex:', paperSizeIndex);
-//     console.log('colorIndex:', colorIndex);
-//     console.log('copies:', copies);
-  
-//     if (pagesIndex === 1 && selectedPages.length > 0) {
-//       console.log('Number of pages before selection:', pdfDoc.getPages().length);
-//       pdfDoc = await selectPages(pdfDoc, selectedPages);
-//       console.log('Selected pages processed');
-//       console.log('Number of pages after selection:', pdfDoc.getPages().length);
-//     }
-//     if (!pdfDoc) {
-//       throw new Error('pdfDoc is undefined after selecting pages');
-//     }
-//     if (paperSizeIndex !== undefined) {
-//       applyPaperSize(pdfDoc, paperSizeIndex);
-//       console.log('Paper size applied');
-//     }
-//     if (copies > 1) {
-//       await duplicatePages(pdfDoc, copies);
-//       console.log('Pages duplicated');
-//     }
-
-//     // Save the modified PDF to a temporary file
-//     tempPdfPath = path.join(__dirname, 'temp', `temp_${Date.now()}.pdf`);
-//     finalPdfPath = path.join(__dirname, 'temp', `final_${Date.now()}.pdf`);
-
-//     const updatedPdfBytes = await pdfDoc.save();
-//     await fs.writeFile(tempPdfPath, updatedPdfBytes);
-//     console.log('Temporary PDF file saved:', tempPdfPath); 
-
-//     if (colorIndex === 1) {
-//       await convertToGrayscale(tempPdfPath, finalPdfPath);
-//       console.log('Converted to grayscale:', finalPdfPath);
-//     } else {
-//       await fs.copyFile(tempPdfPath, finalPdfPath);
-//       console.log('File copied to final path');
-//     }
-//     console.log('Final PDF file prepared:', finalPdfPath);
-
-//     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
-//     console.log('Number of pages before printing:', pdfDoc.getPages().length);
-
-//     // await printPDF(await fs.readFile(finalPdfPath), printerName);
-//     // console.log('Printing started');
-
-//     completeTransaction();
-//     console.log('Transaction completed');
-//     console.log('Coin Count: ')
-
-//     return { success: true, message: 'Printing successful!' };
-//   } catch (error) {
-//       console.error('Error processing and printing PDF:', error);
-//       return { success: false, message: 'Printing failed!' };
-//   } finally {
-//       // Clean up temporary files
-//       if (tempPdfPath) {
-//         try {
-//           await fs.unlink(tempPdfPath);
-//           console.log('Temporary file deleted:', tempPdfPath);
-//         } catch (err) {
-//           console.error('Error deleting temporary file:', tempPdfPath, err);
-//         }
-//       }
-//       if (finalPdfPath) {
-//         try {
-//           await fs.unlink(finalPdfPath);
-//           console.log('Final file deleted:', finalPdfPath);
-//         } catch (err) {
-//           console.error('Error deleting final file:', finalPdfPath, err);
-//         }
-//       }
-//   }
-// };
 
 module.exports = {
   modifyPdfPreview,
