@@ -1,5 +1,15 @@
 const transactionService = require('../services/transactionService');
 
+exports.fetchTransactions = async (req, res) => {
+  try {
+    const transactions = await transactionService.fetchTransactions();
+    res.status(200).json({ success: true, transactions });
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch transactions' });
+  }
+}
+
 exports.saveTransaction = async (req, res) => { 
   const { date, amount, size, totalPages, type } = req.body; 
 
@@ -24,74 +34,27 @@ exports.saveTransaction = async (req, res) => {
   }
 }; 
 
+// Controller to get total sales data (print, scan, copy, total)
+exports.getSalesData = async (req, res) => {
+  try {
+    // Fetch sales data from the database using the service layer
+    const totalSales = await transactionService.getTotalSalesByType('totalAmount');
+    const printSales = await transactionService.getTotalSalesByType('totalPrint');
+    const scanSales = await transactionService.getTotalSalesByType('totalScan');
+    const copySales = await transactionService.getTotalSalesByType('totalCopy');
 
+    // Construct the response in the format expected by the frontend
+    const responseData = {
+      printSales: printSales.toString(),
+      scanSales: scanSales.toString(),
+      copySales: copySales.toString(),
+      totalSales: totalSales.toString(),
+    };
 
-
-
-// // Function to save a scan 
-
-// exports.saveScanTransaction = async (req, res) => { 
-
-//   const { amount, size, type } = req.body; 
-
- 
-
-//   try { 
-
-//     await firestore.collection('dailyReportSales').add({ 
-
-//       date: admin.firestore.Timestamp.now(), 
-
-//       amount, 
-
-//       size, 
-
-//       type 
-
-//     }); 
-
-//     return res.status(200).json({ message: 'Scan transaction saved successfully' }); 
-
-//   } catch (error) { 
-
-//     return res.status(500).json({ error: 'Failed to save transaction', details: error }); 
-
-//   } 
-
-// }; 
-
- 
-
-// // Function to save a photocopy 
-
-// exports.saveCopyTransaction = async (req, res) => { 
-
-//   const { amount, size, totalPages, type } = req.body; 
-
- 
-
-//   try { 
-
-//     await firestore.collection('dailyReportSales').add({ 
-
-//       date: admin.firestore.Timestamp.now(), 
-
-//       amount, 
-
-//       size, 
-
-//       totalPages, 
-
-//       type 
-
-//     }); 
-
-//     return res.status(200).json({ message: 'Copy transaction saved successfully' }); 
-
-//   } catch (error) { 
-
-//     return res.status(500).json({ error: 'Failed to save transaction', details: error }); 
-
-//   } 
-
-// };
+    // Send the response back with a status of 200
+    res.status(200).json(responseData);
+  } catch (error) {
+    console.error('Error fetching sales data:', error);
+    res.status(500).json({ error: 'Failed to fetch sales data', details: error.message });
+  }
+};

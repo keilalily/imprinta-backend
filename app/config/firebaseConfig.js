@@ -15,5 +15,3 @@ const db = admin.database();
 const firestore = admin.firestore();
 
 module.exports = { db, firestore };
-
-// module.exports = db;

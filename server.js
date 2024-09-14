@@ -13,12 +13,11 @@ const pricingRoutes = require('./app/routes/pricingRoutes');
 const inventoryRoutes = require('./app/routes/inventoryRoutes');
 const transactionRoutes = require('./app/routes/transactionRoutes');
 const { setWebSocketServer } = require('./app/services/fileService');
-
 const totalSalesRoutes = require('./app/routes/totalSalesRoutes');
 
-// Arduino Code
-const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
-const arduinoRoutes = require('./app/routes/arduinoRoutes');
+// // Arduino Code
+// const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
+// const arduinoRoutes = require('./app/routes/arduinoRoutes');
 
 
 const app = express();
