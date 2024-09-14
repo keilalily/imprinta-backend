@@ -1,3 +1,4 @@
+const path = require('path');
 const fileService = require('../services/fileService');
 
 exports.upload = async (req, res) => {
@@ -12,31 +13,31 @@ exports.upload = async (req, res) => {
 };
 
 exports.exportData = async (req, res) => {
-  const { filter, query, data, action } = req.body;
+  const { data, action } = req.body;
+
+  const date = new Date();
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const dd = String(date.getDate()).padStart(2, '0');
+  const dateString = `${yyyy}${mm}${dd}`;
+  const fileName = `${dateString}_SalesReport.pdf`;
+  const filePath = path.join(__dirname, 'output', fileName);
 
   try {
-    await fileService.generatePDF(data, action, async (err, filePath, pdfStream) => {
-      if (err) {
-        return res.status(500).send('Failed to generate PDF');
-      }
-  
-      if (action === 'Send to Email') {
-        await fileService.sendEmail(filePath, (error, info) => {
-          if (error) {
-            console.log('Error sending email:', error);
-            res.status(500).send('Failed to send email');
-          } else {
-            console.log('Email sent:', info.response);
-            res.send('Email sent successfully');
-          }
-        });
-      } else {
-        res.send('PDF saved locally');
-      }
-    });
+    // Generate PDF and save locally
+    const savedFilePath = await fileService.generatePDF(data, filePath);
+
+    if (action === 'Send to Email') {
+      // Send PDF via email
+      const emailResult = await fileService.sendEmail(savedFilePath, fileName);
+      res.send(`Email sent successfully. Message ID: ${emailResult.messageId}`);
+    } else {
+      // PDF was saved locally
+      res.send(`PDF saved locally at: ${savedFilePath}`);
+    }
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    res.status(500).send('Failed to generate PDF');
+    console.error('Error:', error);
+    res.status(500).send('Failed to process request: ' + error.message);
   }
   
 };

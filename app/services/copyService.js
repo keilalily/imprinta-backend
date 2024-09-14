@@ -4,8 +4,8 @@ const pdfPrinter = require('pdf-to-printer');
 const { PDFDocument } = require('pdf-lib');
 const { completeTransaction } = require('../utils/transaction');
 
-const printerLong = 'EPSON L3250 Series';
-const printerShort = 'EPSON L3250 Series';
+const printerLong = 'Brother DCP-T420W';
+const printerShort = 'Brother DCP-T420W';
 
 const loadPDF = async (pdfBytes) => {
   try {
@@ -33,9 +33,7 @@ const printPDF = async (pdfBytes, printerName) => {
   try {
     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
     await fs.writeFile(tempFilePath, pdfBytes);
-    const printResult = await pdfPrinter.print(tempFilePath, { printer: printerName });
-    console.log('Print result:', printResult);
-    
+    await pdfPrinter.print(tempFilePath, { printer: printerName });
     await fs.unlink(tempFilePath);
     return true;
   } catch (error) {
@@ -59,12 +57,14 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
 
     const printSuccess = await printPDF(updatedPdfBytes, printerName);
-    if (!printSuccess) {
+    if (printSuccess) {
+      // completeTransaction();
+      return { success: true, message: 'Printing successful!' };
+    } else {
       throw new Error('Printing failed.');
     }
 
-    completeTransaction();
-    return { success: true, message: 'Printing successful!' };
+    
   } catch (error) {
     console.error('Error in printing:', error);
     return { success: false, message: `Printing failed: ${error.message}` };

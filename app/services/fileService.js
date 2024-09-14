@@ -5,6 +5,8 @@ const WebSocket = require('ws');
 const { PDFDocument, rgb } = require('pdf-lib');
 const { exec } = require('child_process'); 
 const nodemailer = require('nodemailer');
+const { jsPDF } = require('jspdf');
+require('jspdf-autotable');
 
 let wss;
 
@@ -107,72 +109,63 @@ exports.processUpload = async (originalname, tempFilePath) => {
 };
 
 exports.generatePDF = async (data, filePath) => {
-  // Create a new PDF document
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([600, 400]);
-  const { width, height } = page.getSize();
+  const doc = new jsPDF();
 
-  // Define table column widths
-  const columnWidths = [100, 100, 150, 100, 100];
-  const tableTop = height - 50;
-  let yPosition = tableTop;
+  // Define table columns and rows
+  const columns = ['Transaction ID', 'Date/Time', 'Service', 'Total Pages', 'Total Amount'];
+  const rows = data.map(item => [
+    item.transactionId || 'N/A',
+    item.date || 'N/A',
+    item.type || 'N/A',
+    item.totalPages ? item.totalPages.toString() : '0',
+    item.amount ? item.amount.toString() : '0'
+  ]);
 
-  // Draw headers
-  const headers = ['Transaction ID', 'Date', 'Service', 'Total Pages', 'Payment'];
-  let xPosition = 50;
-  headers.forEach((header, index) => {
-    page.drawText(header, { x: xPosition, y: yPosition, size: 12, color: rgb(0, 0, 0) });
-    xPosition += columnWidths[index];
+  // Use autoTable to add the table to the PDF
+  doc.autoTable({
+    columns: columns,
+    body: rows,
+    margin: { top: 40 },
+    styles: { fontSize: 10 }
   });
-  yPosition -= 20; // Move down for data rows
 
-  // Draw data rows
-  data.forEach(item => {
-    xPosition = 50;
-    const row = [
-      item.transactionId,
-      item.date,
-      item.service,
-      item.totalPages.toString(),
-      item.payment
-    ];
-    row.forEach((text, index) => {
-      page.drawText(text, { x: xPosition, y: yPosition, size: 12, color: rgb(0, 0, 0) });
-      xPosition += columnWidths[index];
+  // Save the PDF
+  doc.save(filePath);
+};
+
+exports.sendEmail = async (filePath, fileName) => {
+  try {
+
+    // Create a transporter object using SMTP transport
+    let transporter = nodemailer.createTransport({
+      service: process.env.SMTP_SERVICE,
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
     });
-    yPosition -= 20; // Move down for next row
-  });
 
-  // Save PDF
-  const pdfBytes = await pdfDoc.save();
-  fs.writeFileSync(filePath, pdfBytes);
+    // Define mail options including the attachment
+    let mailOptions = {
+      from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
+      to: 'kylamarieangeles@gmail.com',
+      subject: 'Exported Data PDF',
+      text: 'Please find the attached PDF.',
+      attachments: [{
+        filename: fileName,
+        path: filePath
+      }]
+    };
+
+    // Send the email
+    let info = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: info.messageId };
+
+  } catch (error) {
+    throw new Error('Error sending email: ' + error.message);
+  }
 };
 
-exports.sendEmail = (filePath, callback) => {
-
-  let transporter = nodemailer.createTransport({
-    service: process.env.SMTP_SERVICE,
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
-  let mailOptions = {
-    from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
-    to: 'recipient-email@gmail.com',
-    subject: 'Exported Data PDF',
-    text: 'Please find the attached PDF.',
-    attachments: [{
-      filename: 'exported_data.pdf',
-      path: filePath
-    }]
-  };
-
-  let info = transporter.sendMail(mailOptions, callback);
-
-  return { success: true, messageId: info.messageId };
-};

@@ -208,7 +208,7 @@ const saveTransaction = async ({ date, amount, size, totalPages, type }) => {
     const typeMap = {
       Print: 'totalPrint',
       Scan: 'totalScan',
-      Copy: 'totalCopy',
+      Photocopy: 'totalCopy',
     };
 
     if (typeMap[type]) {

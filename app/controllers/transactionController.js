@@ -21,7 +21,7 @@ exports.saveTransaction = async (req, res) => {
     minute: 'numeric', 
     second: 'numeric', 
     hour12: true, 
-    timeZoneName: 'short' 
+    // timeZoneName: 'short' 
   };
 
   const formattedDate = new Date(date).toLocaleString('en-US', options);

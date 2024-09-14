@@ -22,7 +22,7 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
 
     const naps2Path = process.env.NAPS2_PATH;
 
-    const scanCommand = `"${naps2Path}" --noprofile --output "${outputFile}" --driver "wia" --device "EPSON L3250 Series" --dpi "${resolution}" --bitdepth "${color}" --pagesize "${paperSize}"`;
+    const scanCommand = `"${naps2Path}" --noprofile --output "${outputFile}" --driver "wia" --device "Brother Scanner c1" --dpi "${resolution}" --bitdepth "${color}" --pagesize "${paperSize}"`;
 
     console.log('Executing command:', scanCommand);
     await new Promise((resolve, reject) => {
@@ -96,6 +96,6 @@ exports.sendScannedFile = async (email, fileData) => {
 
   let info = await transporter.sendMail(mailOptions);
 
-  completeTransaction();
+  // completeTransaction();
   return { success: true, messageId: info.messageId };
 };

@@ -6,8 +6,8 @@ const { PDFDocument } = require('pdf-lib');
 const pdfPrinter = require('pdf-to-printer');
 const { completeTransaction } = require('../utils/transaction');
 
-const printerLong = 'EPSON L3250 Series';
-const printerShort = 'EPSON L3250 Series';
+const printerLong = 'Brother DCP-T420W';
+const printerShort = 'Brother DCP-T420W';
 
 const loadPDF = async (pdfBytes) => {
   try {
@@ -210,16 +210,14 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
     console.log('Number of pages before printing:', pdfDoc.getPages().length);
 
     const printSuccess = await printPDF(updatedPdfBytes, printerName);
-    if (!printSuccess) {
+    if (printSuccess) {
+      // completeTransaction();
+      return { success: true, message: 'Printing successful!' };
+    } else {
       throw new Error('Printing failed.');
     }
-    console.log('Printing started');
 
-    completeTransaction();
-    console.log('Transaction completed');
-    console.log('Coin Count: ')
-
-    return { success: true, message: 'Printing successful!' };
+    
   } catch (error) {
       console.error('Error processing and printing PDF:', error);
       return { success: false, message: 'Printing failed!' };
