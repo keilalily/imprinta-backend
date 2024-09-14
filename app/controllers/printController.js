@@ -40,6 +40,7 @@ const printDocument = async (req, res) => {
     // } else {
     //   res.status(500).json({ error: result.message });
     // }
+
   } catch (error) {
     console.error('Error printing file:', error);
     res.status(500).json({ error: 'Error printing file' });
