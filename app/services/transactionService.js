@@ -5,7 +5,7 @@ const getTotalSales = async () => {
   try {
     const ref = db.ref('/TotalSales/totalAmount');  
     const snapshot = await ref.once('value');
-    return snapshot.val();  // Return the current totalAmount
+    return snapshot.val(); 
   } catch (error) {
     console.error('Error fetching total sales from Realtime Database:', error);
     throw new Error('Failed to fetch total sales');
@@ -16,7 +16,7 @@ const getTotalSales = async () => {
 const updateTotalSales = async (newTotal) => {
   try {
     const ref = db.ref('/TotalSales/totalAmount');
-    await ref.set(newTotal);  // Update the totalAmount with the newTotal
+    await ref.set(newTotal); 
   } catch (error) {
     console.error('Error updating total sales in Realtime Database:', error);
     throw new Error('Failed to update total sales');
@@ -27,7 +27,7 @@ const getTotalPrintSales = async () => {
   try {
     const ref = db.ref('/TotalSales/totalPrint');  
     const snapshot = await ref.once('value');
-    return snapshot.val();  // Return the current totalPrint
+    return snapshot.val();
   } catch (error) {
     console.error('Error fetching total print sales from Realtime Database:', error);
     throw new Error('Failed to fetch total print sales');
@@ -38,7 +38,7 @@ const getTotalPrintSales = async () => {
 const updateTotalPrintSales = async (newTotal) => {
   try {
     const ref = db.ref('/TotalSales/totalPrint');
-    await ref.set(newTotal);  // Update the totalPrint with the newTotal
+    await ref.set(newTotal);  
   } catch (error) {
     console.error('Error updating total print sales in Realtime Database:', error);
     throw new Error('Failed to update total print sales');
@@ -49,7 +49,7 @@ const getTotalScanSales = async () => {
   try {
     const ref = db.ref('/TotalSales/totalScan');  
     const snapshot = await ref.once('value');
-    return snapshot.val();  // Return the current totalScan
+    return snapshot.val();  
   } catch (error) {
     console.error('Error fetching total scan sales from Realtime Database:', error);
     throw new Error('Failed to fetch total scan sales');
@@ -60,7 +60,7 @@ const getTotalScanSales = async () => {
 const updateTotalScanSales = async (newTotal) => {
   try {
     const ref = db.ref('/TotalSales/totalScan');
-    await ref.set(newTotal);  // Update the totalScan with the newTotal
+    await ref.set(newTotal);  
   } catch (error) {
     console.error('Error updating total scan sales in Realtime Database:', error);
     throw new Error('Failed to update total scan sales');
@@ -71,7 +71,7 @@ const getTotalCopySales = async () => {
   try {
     const ref = db.ref('/TotalSales/totalScan');  
     const snapshot = await ref.once('value');
-    return snapshot.val();  // Return the current totalScan
+    return snapshot.val();  
   } catch (error) {
     console.error('Error fetching total scan sales from Realtime Database:', error);
     throw new Error('Failed to fetch total scan sales');
@@ -82,7 +82,7 @@ const getTotalCopySales = async () => {
 const updateTotalCopySales = async (newTotal) => {
   try {
     const ref = db.ref('/TotalSales/totalScan');
-    await ref.set(newTotal);  // Update the totalScan with the newTotal
+    await ref.set(newTotal); 
   } catch (error) {
     console.error('Error updating total scan sales in Realtime Database:', error);
     throw new Error('Failed to update total scan sales');
@@ -95,7 +95,7 @@ const updateTotalCopySales = async (newTotal) => {
 
 exports.saveTransaction = async ({ date, amount, size, totalPages, type }) => {
   try {
-    // Ensure the data is passed as a valid object
+    
     const transactionData = {date, amount, size, totalPages, type};
 
     await firestore.collection('dailyReportSales').add(transactionData); 
