@@ -20,35 +20,6 @@ const loadPDF = async (pdfBytes) => {
   }
 };
 
-const applyPaperSize = (pdfDoc, paperSizeIndex) => {
-  if (paperSizeIndex === 1) {
-    const newWidth = 612; // Width for Legal size in points
-    const newHeight = 1008; // Height for Legal size in points
-
-    pdfDoc.getPages().forEach(page => {
-      const { width, height } = page.getSize();
-
-      // Set the new page size
-      page.setSize(newWidth, newHeight);
-
-      // Adjust content to fit the new page size
-      // Calculate scale factors for width and height
-      const scaleX = newWidth / width;
-      const scaleY = newHeight / height;
-
-      // Scale content to fit new page size
-      page.scaleContent(scaleX, scaleY);
-
-      // Calculate the offsets to reposition the content to the center or top
-      const offsetX = (newWidth - width * scaleX) / 2; // Center horizontally
-      const offsetY = (newHeight - height * scaleY) / 2; // Center vertically
-
-      // Reposition the content
-      page.translateContent(offsetX, offsetY);
-    });
-  }
-};
-
 const convertToGrayscale = async (inputPdfPath, outputPdfPath) => {
   try {
     // Step 1: Use Ghostscript to convert PDF to grayscale
@@ -128,10 +99,6 @@ const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex
       if (!pdfDoc) {
         throw new Error('pdfDoc is undefined after selecting pages');
       }
-      if (paperSizeIndex !== undefined) {
-        applyPaperSize(pdfDoc, paperSizeIndex);
-        console.log('Paper size applied');
-      }
   
       // Save the modified PDF to a temporary file
       tempPdfPath = path.join(__dirname, 'temp', `temp_${Date.now()}.pdf`);
@@ -195,7 +162,6 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
   try {
     console.log('Received PDF bytes length:', pdfBytes.length);
     let pdfDoc = await loadPDF(pdfBytes);
-    console.log('PDF loaded successfully');
     console.log('copies:', copies);
   
     if (copies > 1) {
@@ -229,3 +195,58 @@ module.exports = {
   modifyPdfPreview,
   processAndPrint
 };
+
+
+// // Print PDF function with built-in options
+// const printPDF = async (pdfBytes, printerName, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies) => {
+//   const tempFilePath = path.join(__dirname, 'temp', `print_${Date.now()}.pdf`);
+//   try {
+//     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
+//     await fs.writeFile(tempFilePath, pdfBytes);
+
+//     console.log(`Printing file: ${tempFilePath}`);
+
+//     await pdfPrinter.print(tempFilePath, { 
+//       printer: printerName,
+//       copies: copies,
+//       monochrome: colorIndex === 1 ? true : false,
+//       pages: pagesIndex === 0 ? 'all' : selectedPages,
+//       paperSize: paperSizeIndex === 0 ? 'Letter' : 'Legal'
+//       // orientation: options.orientation || 'portrait',
+//     });
+
+//     await fs.unlink(tempFilePath);
+//     return true;
+//   } catch (error) {
+//     console.error('Error printing PDF:', error);
+//     await fs.unlink(tempFilePath);
+//     throw error;
+//   }
+// };
+
+// // Main process and print function
+// const processAndPrint = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies) => {
+//   try {
+//     console.log('Received PDF bytes length:', pdfBytes.length);
+
+//     // Determine the correct printer based on paper size or other options
+//     const printerName = paperSizeIndex === 1 ? printerLong : printerShort;
+//     console.log('Selected printer:', printerName);
+
+//     // Print with the chosen options
+//     const printSuccess = await printPDF(pdfBytes, printerName, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies);
+//     if (printSuccess) {
+//       console.log('Printing successful');
+//       return { success: true, message: 'Printing successful!' };
+//     } else {
+//       throw new Error('Printing failed.');
+//     }
+//   } catch (error) {
+//     console.error('Error processing and printing PDF:', error);
+//     return { success: false, message: 'Printing failed!' };
+//   }
+// };
+
+// module.exports = {
+//   processAndPrint
+// };
