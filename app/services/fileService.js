@@ -111,6 +111,24 @@ exports.processUpload = async (originalname, tempFilePath) => {
 exports.generatePDF = async (data, filePath) => {
   const doc = new jsPDF();
 
+  // Define the center position
+  const pageWidth = doc.internal.pageSize.width;
+  const centerX = pageWidth / 2;
+
+  // Title
+  doc.setFontSize(20);
+  doc.setFont('Times', 'bold');
+  const title = 'Vendo Printing Machine';
+  doc.text(title, centerX, 20, { align: 'center' }); // Center title
+
+  // Subtitle and Date
+  doc.setFontSize(14);
+  doc.setFont('Times', 'normal');
+  const subtitle = 'Sales Report';
+  doc.text(subtitle, centerX, 30, { align: 'center' }); // Center subtitle
+  const reportDate = `Date: ${new Date().toLocaleDateString()}`;
+  doc.text(reportDate, centerX, 40, { align: 'center' }); // Center date
+
   // Define table columns and rows
   const columns = ['Transaction ID', 'Date/Time', 'Service', 'Total Pages', 'Total Amount'];
   const rows = data.map(item => [
@@ -121,20 +139,43 @@ exports.generatePDF = async (data, filePath) => {
     item.amount ? item.amount.toString() : '0'
   ]);
 
-  // Use autoTable to add the table to the PDF
+  // Add table with styling
   doc.autoTable({
-    columns: columns,
+    columns: columns.map(col => ({ header: col })),
     body: rows,
-    margin: { top: 40 },
-    styles: { fontSize: 10 }
+    startY: 50, // Adjust startY to make space for the header
+    margin: { left: 14, right: 14 },
+    styles: {
+      fontSize: 10,
+      cellPadding: 4, // Padding inside cells
+      halign: 'center', // Horizontal alignment of text
+    },
+    headStyles: {
+      fillColor: [22, 160, 133], // Header row background color
+      textColor: [255, 255, 255], // Header row text color
+      fontStyle: 'bold', // Header row font style
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245], // Alternate row background color
+    },
+    tableWidth: 'auto', // Auto width for table columns
+    theme: 'striped', // Alternates row color
+    didDrawPage: (data) => {
+      // Add footer with page number
+      doc.setFontSize(10);
+      doc.setFont('Times', 'normal');
+      doc.text(`Page ${doc.internal.getNumberOfPages()}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
+    },
   });
 
   // Save the PDF
   doc.save(filePath);
+  return filePath;
 };
 
 exports.sendEmail = async (filePath, fileName) => {
   try {
+    const fileBuffer = await fs.readFile(filePath);
 
     // Create a transporter object using SMTP transport
     let transporter = nodemailer.createTransport({
@@ -151,12 +192,13 @@ exports.sendEmail = async (filePath, fileName) => {
     // Define mail options including the attachment
     let mailOptions = {
       from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
-      to: 'kylamarieangeles@gmail.com',
+      to: 'karenalabastro18@gmail.com',
       subject: 'Exported Data PDF',
       text: 'Please find the attached PDF.',
       attachments: [{
         filename: fileName,
-        path: filePath
+        content: fileBuffer,
+        encoding: 'base64'
       }]
     };
 

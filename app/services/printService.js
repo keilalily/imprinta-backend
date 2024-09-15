@@ -33,17 +33,18 @@ const applyPaperSize = (pdfDoc, paperSizeIndex) => {
 
       // Adjust content to fit the new page size
       // Calculate scale factors for width and height
-      const scaleX = newSize.width / width;
-      const scaleY = newSize.height / height;
+      const scaleX = newWidth / width;
+      const scaleY = newHeight / height;
 
       // Scale content to fit new page size
       page.scaleContent(scaleX, scaleY);
 
-      // Calculate the vertical offset to reposition the content to start at the top
-      const offsetY = newHeight - height; // Moves content up to start at the top
+      // Calculate the offsets to reposition the content to the center or top
+      const offsetX = (newWidth - width * scaleX) / 2; // Center horizontally
+      const offsetY = (newHeight - height * scaleY) / 2; // Center vertically
 
       // Reposition the content
-      page.translateContent(0, offsetY);
+      page.translateContent(offsetX, offsetY);
     });
   }
 };
