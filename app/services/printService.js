@@ -76,6 +76,39 @@ const duplicatePages = async (pdfDoc, copies) => {
   }
 };
 
+const PAPER_SIZES = {
+  shortBond: { width: 612, height: 792 }, // Short bond paper size (Letter size)
+  longBond: { width: 612, height: 1008 }, // Long bond paper size (Legal size)
+};
+
+const resizePages = async (pdfDoc, targetSize) => {
+  const pages = pdfDoc.getPages();
+
+  for (let page of pages) {
+    const { width, height } = page.getSize();
+
+    const isLandscape = width > height;
+    console.log(`Page is in ${isLandscape ? 'landscape' : 'portrait'} mode.`);
+
+    const adjustedTargetSize = isLandscape
+      ? { width: targetSize.height, height: targetSize.width }
+      : targetSize;
+
+    const scaleX = adjustedTargetSize.width / width;
+    const scaleY = adjustedTargetSize.height / height;
+    const scale = Math.min(scaleX, scaleY); // Preserve aspect ratio
+
+    page.scale(scale, scale);
+
+    // Center the content on the new page size
+    page.setSize(adjustedTargetSize.width, adjustedTargetSize.height);
+    const translateX = (adjustedTargetSize.width - width * scale) / 2;
+    const translateY = adjustedTargetSize.height - height * scale; // Align to top
+
+    page.translateContent(translateX, translateY);
+  }
+};
+
 const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages) => {
   let tempPdfPath;
   let finalPdfPath;
@@ -99,6 +132,18 @@ const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex
       if (!pdfDoc) {
         throw new Error('pdfDoc is undefined after selecting pages');
       }
+
+      // Determine target paper size based on paperSizeIndex
+      let targetSize;
+      if (paperSizeIndex === 0) {
+        targetSize = PAPER_SIZES.shortBond;
+      } else {
+        targetSize = PAPER_SIZES.longBond;
+      }
+
+      // Resize the pages to fit the selected paper size
+      await resizePages(pdfDoc, targetSize);
+      console.log('PDF pages resized to fit the paper size:', targetSize);
   
       // Save the modified PDF to a temporary file
       tempPdfPath = path.join(__dirname, 'temp', `temp_${Date.now()}.pdf`);

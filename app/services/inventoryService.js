@@ -74,7 +74,7 @@ const getInventory = async () => {
     console.log('Short Paper count is below the threshold.');
     if (!data.emailSentForShortPaper) {
       console.log('Sending email for Short Paper.');
-      sendLowInventoryEmail('Short Papers', remainingPapersShort);
+      sendLowInventoryEmail('Short Papers', remainingPapersShort, email);
       data.emailSentForShortPaper = true; // Update the flag
     } else {
       console.log('Email for Short Paper has already been sent.');
