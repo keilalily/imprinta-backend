@@ -21,7 +21,7 @@ const sendLowInventoryEmail = (paperType, remaining) => {
   });
   
   const mailOptions = {
-    from: 'peterjames.cabantog.m@bulsu.edu.ph',
+    from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
     to: 'hibariaine.2161@gmail.com',
     subject: 'Low Paper Inventory Alert',
     text: `The remaining ${paperType} is low. Only ${remaining} papers left. Please restock soon.`,
