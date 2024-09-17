@@ -4,11 +4,10 @@ const ref = db.ref("/Inventory");
 const emailRef = db.ref("/login");
 
 const lowInventoryThreshold = {
-  longPaper: 50,  // Change this value as needed
-  shortPaper: 50, // Change this value as needed
+  longPaper: 50, 
+  shortPaper: 50,
 };
 
-// Function to send email notification
 const sendLowInventoryEmail = (paperType, remaining, email) => {
   const transporter = nodemailer.createTransport({
     service: process.env.SMTP_SERVICE,
