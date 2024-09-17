@@ -1,15 +1,16 @@
 const { db } = require('../config/firebaseConfig');
 const nodemailer = require('nodemailer');
+const emailRef = db.ref("/login");
 
 // Fetch sales data from Firebase
-async function fetchSalesData() {
+const fetchSalesData = async () => {
   const ref = db.ref("TotalSales");
   const snapshot = await ref.once("value");
   return snapshot.val();
 }
 
 // Generate HTML table from data
-function generateTable(data) {
+const generateTable = (data) => {
   return `
     <table border="1" cellpadding="5" cellspacing="0">
       <tr>
@@ -29,8 +30,11 @@ function generateTable(data) {
 }
 
 // Send email with sales data
-async function sendSalesEmail(salesData) {
+const sendSalesEmail = async (salesData) => {
   const htmlTable = generateTable(salesData);
+  const emailSnapshot = await emailRef.once('value');
+  let userData = emailSnapshot.val();
+  const email = userData ? userData.email : null;
 
   let transporter = nodemailer.createTransport({
     service: process.env.SMTP_SERVICE,
@@ -44,8 +48,8 @@ async function sendSalesEmail(salesData) {
   });
 
   let mailOptions = {
-    from: 'peterjames.cabantog.m@bulsu.edu.ph',
-    to: 'hibariaine.2161@gmail.com',
+    from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
+    to: email,
     subject: 'Daily Sales Report',
     html: `<h3>Sales Data</h3>${htmlTable}`,
   };
@@ -54,7 +58,7 @@ async function sendSalesEmail(salesData) {
 }
 
 // Reset the sales data to zero in Firebase
-async function resetSalesData() {
+const resetSalesData = async () => {
   const ref = db.ref("TotalSales");
 
   // Set all values to zero

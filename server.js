@@ -19,10 +19,6 @@ const salesRoutes = require('./app/routes/salesRoutes');
 
 const cron = require('node-cron');
 
-//const totalSalesRoutes = require('./app/routes/totalSalesRoutes');
-
-
-
 // // Arduino Code
 // const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
 // const arduinoRoutes = require('./app/routes/arduinoRoutes');

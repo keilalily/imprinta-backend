@@ -1,6 +1,7 @@
 const { db } = require('../config/firebaseConfig');
 const nodemailer = require('nodemailer');
 const ref = db.ref("/Inventory");
+const emailRef = db.ref("/login");
 
 const lowInventoryThreshold = {
   longPaper: 50,  // Change this value as needed
@@ -8,7 +9,7 @@ const lowInventoryThreshold = {
 };
 
 // Function to send email notification
-const sendLowInventoryEmail = (paperType, remaining) => {
+const sendLowInventoryEmail = (paperType, remaining, email) => {
   const transporter = nodemailer.createTransport({
     service: process.env.SMTP_SERVICE,
     host: process.env.SMTP_HOST,
@@ -22,7 +23,7 @@ const sendLowInventoryEmail = (paperType, remaining) => {
   
   const mailOptions = {
     from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
-    to: 'hibariaine.2161@gmail.com',
+    to: email,
     subject: 'Low Paper Inventory Alert',
     text: `The remaining ${paperType} is low. Only ${remaining} papers left. Please restock soon.`,
   };
@@ -45,6 +46,9 @@ const updateInventory = async (data) => {
 const getInventory = async () => {
   const snapshot = await ref.once('value');
   let data = snapshot.val();
+  const emailSnapshot = await emailRef.once('value');
+  let userData = emailSnapshot.val();
+  const email = userData ? userData.email : null;
   console.log('Fetched inventory data:', snapshot.val()); // Log the fetched data
   
   const remainingPapersLong = Number(data.remainingPapersLong);
@@ -54,7 +58,7 @@ const getInventory = async () => {
     console.log('Long Paper count is below the threshold.');
     if (!data.emailSentForLongPaper) {
       console.log('Sending email for Long Paper.');
-      sendLowInventoryEmail('Long Papers', remainingPapersLong);
+      sendLowInventoryEmail('Long Papers', remainingPapersLong, email);
       data.emailSentForLongPaper = true; // Update the flag
     } else {
       console.log('Email for Long Paper has already been sent.');

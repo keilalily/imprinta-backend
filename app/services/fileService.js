@@ -1,12 +1,14 @@
 require('dotenv').config();
 const fs = require('fs').promises;
 const path = require('path');
-const WebSocket = require('ws');
-const { PDFDocument, rgb } = require('pdf-lib');
-const { exec } = require('child_process'); 
 const nodemailer = require('nodemailer');
+const WebSocket = require('ws');
+const { PDFDocument } = require('pdf-lib');
+const { exec } = require('child_process');
 const { jsPDF } = require('jspdf');
 require('jspdf-autotable');
+const { db } = require('../config/firebaseConfig');
+const emailRef = db.ref("/login");
 
 let wss;
 
@@ -111,7 +113,7 @@ exports.processUpload = async (originalname, tempFilePath) => {
 exports.generatePDF = async (data, filePath) => {
   const doc = new jsPDF();
 
-  // Define the center position
+  // Center content
   const pageWidth = doc.internal.pageSize.width;
   const centerX = pageWidth / 2;
 
@@ -121,7 +123,6 @@ exports.generatePDF = async (data, filePath) => {
   const title = 'Vendo Printing Machine';
   doc.text(title, centerX, 20, { align: 'center' }); // Center title
 
-  // Subtitle and Date
   doc.setFontSize(14);
   doc.setFont('Times', 'normal');
   const subtitle = 'Sales Report';
@@ -129,7 +130,6 @@ exports.generatePDF = async (data, filePath) => {
   const reportDate = `Date: ${new Date().toLocaleDateString()}`;
   doc.text(reportDate, centerX, 40, { align: 'center' }); // Center date
 
-  // Define table columns and rows
   const columns = ['Transaction ID', 'Date/Time', 'Service', 'Total Pages', 'Total Amount'];
   const rows = data.map(item => [
     item.transactionId || 'N/A',
@@ -139,36 +139,36 @@ exports.generatePDF = async (data, filePath) => {
     item.amount ? item.amount.toString() : '0'
   ]);
 
-  // Add table with styling
+  // Add table
   doc.autoTable({
     columns: columns.map(col => ({ header: col })),
     body: rows,
-    startY: 50, // Adjust startY to make space for the header
+    startY: 50,
     margin: { left: 14, right: 14 },
     styles: {
       fontSize: 10,
-      cellPadding: 4, // Padding inside cells
-      halign: 'center', // Horizontal alignment of text
+      cellPadding: 4,
+      halign: 'center',
     },
     headStyles: {
-      fillColor: [22, 160, 133], // Header row background color
-      textColor: [255, 255, 255], // Header row text color
-      fontStyle: 'bold', // Header row font style
+      fillColor: [22, 160, 133],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
     },
     alternateRowStyles: {
-      fillColor: [245, 245, 245], // Alternate row background color
+      fillColor: [245, 245, 245],
     },
-    tableWidth: 'auto', // Auto width for table columns
-    theme: 'striped', // Alternates row color
+    tableWidth: 'auto',
+    theme: 'striped',
     didDrawPage: (data) => {
-      // Add footer with page number
+      // Page number
       doc.setFontSize(10);
       doc.setFont('Times', 'normal');
       doc.text(`Page ${doc.internal.getNumberOfPages()}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
     },
   });
 
-  // Save the PDF
+  // Save as local copy
   doc.save(filePath);
   return filePath;
 };
@@ -176,8 +176,10 @@ exports.generatePDF = async (data, filePath) => {
 exports.sendEmail = async (filePath, fileName) => {
   try {
     const fileBuffer = await fs.readFile(filePath);
+    const emailSnapshot = await emailRef.once('value');
+    let userData = emailSnapshot.val();
+    const email = userData ? userData.email : null;
 
-    // Create a transporter object using SMTP transport
     let transporter = nodemailer.createTransport({
       service: process.env.SMTP_SERVICE,
       host: process.env.SMTP_HOST,
@@ -189,10 +191,9 @@ exports.sendEmail = async (filePath, fileName) => {
       },
     });
 
-    // Define mail options including the attachment
     let mailOptions = {
       from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
-      to: 'karenalabastro18@gmail.com',
+      to: email,
       subject: 'Exported Data PDF',
       text: 'Please find the attached PDF.',
       attachments: [{
@@ -204,6 +205,7 @@ exports.sendEmail = async (filePath, fileName) => {
 
     // Send the email
     let info = await transporter.sendMail(mailOptions);
+    await fs.unlink(filePath);
     return { success: true, messageId: info.messageId };
 
   } catch (error) {
