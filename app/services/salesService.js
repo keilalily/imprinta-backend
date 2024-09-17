@@ -2,14 +2,12 @@ const { db } = require('../config/firebaseConfig');
 const nodemailer = require('nodemailer');
 const emailRef = db.ref("/login");
 
-// Fetch sales data from Firebase
 const fetchSalesData = async () => {
   const ref = db.ref("TotalSales");
   const snapshot = await ref.once("value");
   return snapshot.val();
 }
 
-// Generate HTML table from data
 const generateTable = (data) => {
   return `
     <table border="1" cellpadding="5" cellspacing="0">
@@ -29,7 +27,6 @@ const generateTable = (data) => {
   `;
 }
 
-// Send email with sales data
 const sendSalesEmail = async (salesData) => {
   const htmlTable = generateTable(salesData);
   const emailSnapshot = await emailRef.once('value');
@@ -57,11 +54,9 @@ const sendSalesEmail = async (salesData) => {
   await transporter.sendMail(mailOptions);
 }
 
-// Reset the sales data to zero in Firebase
 const resetSalesData = async () => {
   const ref = db.ref("TotalSales");
 
-  // Set all values to zero
   await ref.set({
     totalAmount: 0,
     totalCopy: 0,

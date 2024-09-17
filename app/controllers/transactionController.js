@@ -21,7 +21,7 @@ exports.saveTransaction = async (req, res) => {
     minute: 'numeric', 
     second: 'numeric', 
     hour12: true, 
-    // timeZoneName: 'short' 
+    // timeZoneName: 'short' // pag gusto may gmt
   };
 
   const formattedDate = new Date(date).toLocaleString('en-US', options);
@@ -34,16 +34,14 @@ exports.saveTransaction = async (req, res) => {
   }
 }; 
 
-// Controller to get total sales data (print, scan, copy, total)
+// to get total sales data (print, scan, copy, total)
 exports.getSalesData = async (req, res) => {
   try {
-    // Fetch sales data from the database using the service layer
     const totalSales = await transactionService.getTotalSalesByType('totalAmount');
     const printSales = await transactionService.getTotalSalesByType('totalPrint');
     const scanSales = await transactionService.getTotalSalesByType('totalScan');
     const copySales = await transactionService.getTotalSalesByType('totalCopy');
 
-    // Construct the response in the format expected by the frontend
     const responseData = {
       printSales: printSales.toString(),
       scanSales: scanSales.toString(),
@@ -51,7 +49,6 @@ exports.getSalesData = async (req, res) => {
       totalSales: totalSales.toString(),
     };
 
-    // Send the response back with a status of 200
     res.status(200).json(responseData);
   } catch (error) {
     console.error('Error fetching sales data:', error);

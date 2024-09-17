@@ -39,7 +39,7 @@ const sendLowInventoryEmail = (paperType, remaining, email) => {
 };
 
 const updateInventory = async (data) => {
-  console.log('Updating inventory with data:', data); // Log the data being saved
+  console.log('Updating inventory with data:', data); 
   await ref.set(data);
 };
 
@@ -49,7 +49,7 @@ const getInventory = async () => {
   const emailSnapshot = await emailRef.once('value');
   let userData = emailSnapshot.val();
   const email = userData ? userData.email : null;
-  console.log('Fetched inventory data:', snapshot.val()); // Log the fetched data
+  console.log('Fetched inventory data:', snapshot.val()); 
   
   const remainingPapersLong = Number(data.remainingPapersLong);
   const remainingPapersShort = Number(data.remainingPapersShort);
@@ -59,29 +59,28 @@ const getInventory = async () => {
     if (!data.emailSentForLongPaper) {
       console.log('Sending email for Long Paper.');
       sendLowInventoryEmail('Long Papers', remainingPapersLong, email);
-      data.emailSentForLongPaper = true; // Update the flag
+      data.emailSentForLongPaper = true; 
     } else {
       console.log('Email for Long Paper has already been sent.');
     }
   } else {
     console.log('Long Paper count is above the threshold.');
-    data.emailSentForLongPaper = false; // Reset the flag
+    data.emailSentForLongPaper = false; 
   }
 
-  // Check and handle short paper
   console.log(`Checking Short Paper - Count: ${remainingPapersShort}, Threshold: ${lowInventoryThreshold.shortPaper}`);
   if (remainingPapersShort <= lowInventoryThreshold.shortPaper) {
     console.log('Short Paper count is below the threshold.');
     if (!data.emailSentForShortPaper) {
       console.log('Sending email for Short Paper.');
       sendLowInventoryEmail('Short Papers', remainingPapersShort, email);
-      data.emailSentForShortPaper = true; // Update the flag
+      data.emailSentForShortPaper = true; 
     } else {
       console.log('Email for Short Paper has already been sent.');
     }
   } else {
     console.log('Short Paper count is above the threshold.');
-    data.emailSentForShortPaper = false; // Reset the flag
+    data.emailSentForShortPaper = false; 
   }
 
   return snapshot.val();

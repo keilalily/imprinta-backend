@@ -1,15 +1,12 @@
 const salesService = require('../services/salesService');
 
-// Controller to send the daily sales report and reset data
+// send and delete sales report
 async function sendDailySalesReport(req, res) {
   try {
-    // Fetch the sales data
     const salesData = await salesService.fetchSalesData();
 
-    // Send the sales data via email
     await salesService.sendSalesEmail(salesData);
 
-    // Reset the sales data to zero after sending the email
     await salesService.resetSalesData();
 
     res.status(200).json({ message: 'Daily Sales Report sent and sales data reset to zero.' });

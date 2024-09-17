@@ -50,25 +50,5 @@ app.post("/create", async (req, res) => {
     }
 });
 
-// app.get("/", async (req, res) => {
-//     const snapshot = await User.get();
-//     const list = snapshot.docs((doc) => ({ id: doc.id, ...doc.data() }));
-//     res.send(list);
-// });
-
-
-// app.post("/create", async (req, res) => {
-//     const data = req.body;
-//     await User.add(data);   
-
-// });
-
-// app.post("/update", async (req, res) => {
-//     const id = req.bod.idy;
-//     const data = req.body;
-//     await User.doc(id).update(req,body);
-
-// });
-
 app.listen(3000, () => { console.log("Server is running on port 3000") }
 );
