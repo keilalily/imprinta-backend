@@ -46,6 +46,8 @@ setWebSocketServer(wss);
 //   ws.send(JSON.stringify({ pulseCount: getPulseCount(), amountInserted: getAmountInserted() }));
 // });
 
+//schedule to send email daily  *(min) *(hour) *(day) *(week) *(month)
+// * = meaning every possible value for that field
 cron.schedule('5 23 * * *', async () => {
   console.log('Cron job running at 11:05 PM');
   try {
@@ -62,9 +64,8 @@ cron.schedule('5 23 * * *', async () => {
   }
 }, {
   scheduled: true,
-  timezone: "Asia/Manila" // Adjust this to your desired timezone
+  timezone: "Asia/Manila" 
 });
-
 
 app.use('/admin', adminRoutes);
 app.use('/file', fileRoutes);

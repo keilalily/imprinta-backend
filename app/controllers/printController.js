@@ -12,10 +12,8 @@ const modifyPdfPreview = async (req, res) => {
       selectedPages
     );
     if (result.success) {
-      // Return the modified pdfBytes along with a success message
       res.json({ pdfBytes: result.pdfBytes });
     } else {
-      // Handle the case where modification failed
       res.status(500).json({ error: result.message });
     }
   } catch (error) {

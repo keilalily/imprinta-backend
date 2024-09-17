@@ -29,7 +29,7 @@ const initSerialPort = (wss) => {
     const matches = message.match(/Reset Complete: (\d+)/);
     if (matches) {
       pulseCount = parseInt(matches[1], 10);
-      amountInserted = pulseCount; // Reset amount
+      amountInserted = pulseCount;
       console.log('Reset Pulse Count:', pulseCount);
       console.log('Reset Amount Inserted:', amountInserted);
       wss.clients.forEach(client => {
@@ -44,4 +44,9 @@ const initSerialPort = (wss) => {
 const getPulseCount = () => pulseCount;
 const getAmountInserted = () => amountInserted;
 
-module.exports = { initSerialPort, handleSerialData, getPulseCount, getAmountInserted };
+module.exports = { 
+  initSerialPort, 
+  handleSerialData, 
+  getPulseCount, 
+  getAmountInserted 
+};

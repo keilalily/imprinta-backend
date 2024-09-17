@@ -55,17 +55,14 @@ exports.processUpload = async (originalname, tempFilePath) => {
   let shouldDeleteTempFile = false;
 
   try {
-    // Check if the file is a DOCX file before attempting conversion
     if (originalname.endsWith('.docx')) {
       console.log('Starting conversion...');
       await convertDocxToPdf(tempFilePath, uploadDir);
       console.log('Conversion completed successfully.');
 
-      // Rename the generated PDF file to match the original name
       pdfPath = await renameGeneratedPdf(uploadDir, originalname);
       shouldDeleteTempFile = true;
     } else if (originalname.endsWith('.pdf')) {
-      // If the file is already a PDF, just move it to the upload directory
       pdfPath = path.join(uploadDir, originalname);
       await fs.rename(tempFilePath, pdfPath);
     } else {
@@ -113,22 +110,20 @@ exports.processUpload = async (originalname, tempFilePath) => {
 exports.generatePDF = async (data, filePath) => {
   const doc = new jsPDF();
 
-  // Center content
   const pageWidth = doc.internal.pageSize.width;
   const centerX = pageWidth / 2;
 
-  // Title
   doc.setFontSize(20);
   doc.setFont('Times', 'bold');
   const title = 'Vendo Printing Machine';
-  doc.text(title, centerX, 20, { align: 'center' }); // Center title
+  doc.text(title, centerX, 20, { align: 'center' }); 
 
   doc.setFontSize(14);
   doc.setFont('Times', 'normal');
   const subtitle = 'Sales Report';
-  doc.text(subtitle, centerX, 30, { align: 'center' }); // Center subtitle
+  doc.text(subtitle, centerX, 30, { align: 'center' }); 
   const reportDate = `Date: ${new Date().toLocaleDateString()}`;
-  doc.text(reportDate, centerX, 40, { align: 'center' }); // Center date
+  doc.text(reportDate, centerX, 40, { align: 'center' }); 
 
   const columns = ['Transaction ID', 'Date/Time', 'Service', 'Total Pages', 'Total Amount'];
   const rows = data.map(item => [
@@ -139,7 +134,6 @@ exports.generatePDF = async (data, filePath) => {
     item.amount ? item.amount.toString() : '0'
   ]);
 
-  // Add table
   doc.autoTable({
     columns: columns.map(col => ({ header: col })),
     body: rows,
@@ -161,14 +155,12 @@ exports.generatePDF = async (data, filePath) => {
     tableWidth: 'auto',
     theme: 'striped',
     didDrawPage: (data) => {
-      // Page number
       doc.setFontSize(10);
       doc.setFont('Times', 'normal');
       doc.text(`Page ${doc.internal.getNumberOfPages()}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
     },
   });
 
-  // Save as local copy
   doc.save(filePath);
   return filePath;
 };
@@ -203,7 +195,6 @@ exports.sendEmail = async (filePath, fileName) => {
       }]
     };
 
-    // Send the email
     let info = await transporter.sendMail(mailOptions);
     await fs.unlink(filePath);
     return { success: true, messageId: info.messageId };

@@ -1,8 +1,7 @@
 const bcrypt = require('bcryptjs');
-const { db } = require('../config/firebaseConfig'); // Import the initialized Firebase Admin instance
+const { db } = require('../config/firebaseConfig');
 const ref = db.ref("/login");
 
-// Helper function to verify password
 const verifyPassword = async (inputPassword, storedPassword) => {
   return bcrypt.compare(inputPassword, storedPassword);
 };
@@ -27,7 +26,6 @@ exports.login = async (username, password) => {
   }
 };
 
-// Get admin details function
 exports.getAdminDetails = async (username) => {
   try {
     const snapshot = await ref.once('value');
@@ -46,15 +44,14 @@ exports.getAdminDetails = async (username) => {
   }
 };
 
-// Update admin details function
 exports.updateAdminDetails = async (email, username, newPassword, currentPassword) => {
   try {
     const snapshot = await ref.once('value');
     const userData = snapshot.val();
 
-    console.log('Fetched user data:', userData); // Logging fetched user data
-    console.log('Entered current password:', currentPassword); // Logging entered current password (plain text)
-    console.log('Stored hashed password:', userData.password); // Logging stored hashed password  
+    console.log('Fetched user data:', userData); 
+    console.log('Entered current password:', currentPassword); 
+    console.log('Stored hashed password:', userData.password); 
 
     const passwordIsValid = await verifyPassword(currentPassword, userData.password);
     if (!passwordIsValid) {

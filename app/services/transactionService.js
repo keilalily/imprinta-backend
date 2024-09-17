@@ -1,6 +1,5 @@
 const { firestore, db } = require('../config/firebaseConfig');
 
-// Generic function to fetch total sales by type (e.g., totalAmount, totalPrint, totalScan, totalCopy)
 const getTotalSalesByType = async (type) => {
   try {
     const ref = db.ref(`/TotalSales/${type}`);
@@ -12,7 +11,6 @@ const getTotalSalesByType = async (type) => {
   }
 };
 
-// Generic function to update total sales by type
 const updateTotalSalesByType = async (type, newTotal) => {
   try {
     const ref = db.ref(`/TotalSales/${type}`);
@@ -28,9 +26,7 @@ const fetchTransactions = async () => {
     const snapshot = await firestore.collection('dailyReportSales').get();
     return snapshot.docs.map(doc => {
       const data = doc.data();
-      // Add the document ID as 'transactionId' and exclude the 'size' field
       const { size, ...filteredData } = data;
-      // Convert data fields to strings
       return {
         transactionId: doc.id,
         date: (filteredData.date || 'N/A').toString(),
@@ -53,13 +49,11 @@ const saveTransaction = async ({ date, amount, size, totalPages, type }) => {
     await firestore.collection('dailyReportSales').add(transactionData);
     console.log('Transaction saved successfully in Firestore');
 
-    // Update overall total sales
     const currentTotal = await getTotalSalesByType('totalAmount');
     const newTotal = currentTotal + amount;
     await updateTotalSalesByType('totalAmount', newTotal);
     console.log('Total sales updated successfully to:', newTotal);
 
-    // Update sales by type (e.g., Print, Scan, Copy)
     const typeMap = {
       Print: 'totalPrint',
       Scan: 'totalScan',
@@ -80,5 +74,9 @@ const saveTransaction = async ({ date, amount, size, totalPages, type }) => {
   }
 };
 
-// Export the generic functions for external use
-module.exports = { getTotalSalesByType, updateTotalSalesByType, saveTransaction, fetchTransactions };
+module.exports = { 
+  getTotalSalesByType, 
+  updateTotalSalesByType, 
+  saveTransaction, 
+  fetchTransactions 
+};
