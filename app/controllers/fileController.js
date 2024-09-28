@@ -17,22 +17,19 @@ exports.exportData = async (req, res) => {
 
   const date = new Date();
   const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
   const dateString = `${yyyy}${mm}${dd}`;
-  const fileName = `${dateString}_SalesReport.pdf`;
+  const fileName = `${dateString}_SalesReport.xlsx`;
   const filePath = path.join(__dirname, 'output', fileName);
 
   try {
-    // Generate PDF and save locally
-    const savedFilePath = await fileService.generatePDF(data, filePath);
+    const savedFilePath = await fileService.generateExcel(data, filePath);
 
     if (action === 'Send to Email') {
-      // Send PDF via email
       const emailResult = await fileService.sendEmail(savedFilePath, fileName);
       res.send(`Email sent successfully. Message ID: ${emailResult.messageId}`);
     } else {
-      // PDF was saved locally
       res.send(`PDF saved locally at: ${savedFilePath}`);
     }
   } catch (error) {
