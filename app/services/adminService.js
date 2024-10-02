@@ -58,7 +58,8 @@ exports.login = async (username, password) => {
     if (loginData.lockUntil > now) {
       const lockUntilFormatted = formatDate(loginData.lockUntil); // Call formatDate here
       console.log(`Account locked until: ${lockUntilFormatted}`);
-      return { success: false, status: 403, message: `Account is locked until: ${lockUntilFormatted}. Try again later.` };
+      return { success: false, status: 403, message: `Locking account due to 3 failed attempts. 
+Account is locked until: ${lockUntilFormatted}. Try again later.` };
     }
 
     // Initialize the failedAttempts variable
@@ -192,4 +193,3 @@ exports.updateAdminDetails = async (email, username, newPassword, currentPasswor
     return { success: false, message: 'Internal server error' };
   }
 };
-

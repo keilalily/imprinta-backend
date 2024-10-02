@@ -19,6 +19,13 @@ const salesRoutes = require('./app/routes/salesRoutes');
 
 const cron = require('node-cron');
 
+const { deleteAllSalesDocuments } = require('./app/services/firestoreService');
+const firestoreRoutes = require('./app/routes/salesRoutes');
+
+const { sendEmailNotification } = require('./app/services/emailService');
+const emailRoutes = require('./app/routes/emailRoutes');
+
+
 // // Arduino Code
 // const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
 // const arduinoRoutes = require('./app/routes/arduinoRoutes');
@@ -48,7 +55,7 @@ setWebSocketServer(wss);
 
 //schedule to send email daily  *(min) *(hour) *(day) *(week) *(month)
 // * = meaning every possible value for that field
-cron.schedule('5 23 * * *', async () => {
+cron.schedule('0 23 * * *', async () => {
   console.log('Cron job running at 11:05 PM');
   try {
     const salesData = await salesService.fetchSalesData();
@@ -67,6 +74,18 @@ cron.schedule('5 23 * * *', async () => {
   timezone: "Asia/Manila" 
 });
 
+// set time para mag send ng email notification 1 hour before mag delete yung docu sa loob ng firestore
+cron.schedule('39 18 * * *', async () => {
+  console.log('Sending email notification for upcoming deletion...');
+  await sendEmailNotification();
+});
+
+// set time to delete yung docu sa loob ng firestore every sunday 9:30 PM (30 21 * * 0)
+cron.schedule('30 21 * * 0', async () => {
+  console.log('Running scheduled task to delete sales documents...'); // check kung gumagana
+  await deleteAllSalesDocuments();
+});
+
 app.use('/admin', adminRoutes);
 app.use('/file', fileRoutes);
 app.use('/print', printRoutes);
@@ -76,6 +95,8 @@ app.use('/pricing', pricingRoutes);
 app.use('/data', inventoryRoutes);
 app.use('/transaction', transactionRoutes);
 app.use('/sales', salesRoutes);
+app.use('/firestore', firestoreRoutes);
+app.use('/email', emailRoutes);
 
 const IP_ADDRESS = process.env.IP_ADDRESS || '127.0.0.1'; // Localhost Default
 const PORT = process.env.PORT || 3000;
