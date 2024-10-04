@@ -93,7 +93,7 @@ Account is locked until: ${lockUntilFormatted}. Try again later.` };
       return { 
         success: false, 
         status: 400, 
-        message: `User not found. You have ${remainingAttempts} left.`,
+        message: `User not found. You have ${remainingAttempts} remaining attempts left.`,
       };
     } 
 
@@ -124,10 +124,12 @@ Account is locked until: ${lockUntilFormatted}. Try again later.` };
         console.error('Failed to update failedAttempts and lockUntil:', error);
       }
 
+      let remainingAttempts = 3 - failedAttempts;
+
       return { 
         success: false, 
         status: 401, 
-        message: `Invalid password. You have ${remainingAttempts} left.`,
+        message: `Invalid password. You have ${remainingAttempts} remaining attempts left.`,
       };
     } 
 
