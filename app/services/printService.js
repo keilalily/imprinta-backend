@@ -98,7 +98,7 @@ const resizePages = async (pdfDoc, targetSize) => {
 
     page.setSize(adjustedTargetSize.width, adjustedTargetSize.height);
     const translateX = (adjustedTargetSize.width - width * scale) / 2;
-    const translateY = adjustedTargetSize.height - height * scale; 
+    const translateY = (adjustedTargetSize.height - height * scale) / 2; 
 
     page.translateContent(translateX, translateY);
   }
