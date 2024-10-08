@@ -26,6 +26,11 @@ const fetchTransactions = async () => {
     const snapshot = await firestore.collection('dailyReportSales').get();
     return snapshot.docs.map(doc => {
       const data = doc.data();
+
+      if (data.dummy) {
+        return null; // skip dummy docu
+      }
+
       const { size, ...filteredData } = data;
       return {
         transactionId: doc.id,
@@ -35,7 +40,7 @@ const fetchTransactions = async () => {
         totalPages: (filteredData.totalPages || 'N/A').toString(),
         type: (filteredData.type || 'N/A').toString()
       };
-    });
+    }).filter(doc => doc !== null);
   } catch (error) {
     throw new Error('Failed to fetch transactions');
   }
