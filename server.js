@@ -25,6 +25,9 @@ const firestoreRoutes = require('./app/routes/salesRoutes');
 const { sendEmailNotification } = require('./app/services/emailService');
 const emailRoutes = require('./app/routes/emailRoutes');
 
+const forgotPasswordRoutes = require('./app/routes/forgotPasswordRoutes');
+
+
 
 // // Arduino Code
 // const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
@@ -97,6 +100,7 @@ app.use('/transaction', transactionRoutes);
 app.use('/sales', salesRoutes);
 app.use('/firestore', firestoreRoutes);
 app.use('/email', emailRoutes);
+app.use('/forgot-password', forgotPasswordRoutes);
 
 const IP_ADDRESS = process.env.IP_ADDRESS || '127.0.0.1'; // Localhost Default
 const PORT = process.env.PORT || 3000;

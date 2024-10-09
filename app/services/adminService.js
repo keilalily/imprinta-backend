@@ -135,6 +135,18 @@ Account is locked until: ${lockUntilFormatted}. Try again later.` };
     throw new Error('Internal server error: ' + error.message);
   }
 };
+/////
+
+exports.getAdminEmail = async () => {
+  try {
+    const snapshot = await ref.child('login').once('value'); // Adjust to your database structure
+    const adminData = snapshot.val();
+    return adminData ? adminData.email : null; // Return admin email if found
+  } catch (error) {
+    console.error('Error fetching admin email:', error);
+    throw new Error('Error fetching admin email');
+  }
+};
 
 
 // - - - - -- - - -- 
@@ -143,16 +155,27 @@ exports.getAdminDetails = async (username) => {
     const snapshot = await ref.once('value');
     const userData = snapshot.val();
 
-    console.log(`DB Username: ${userData.username}, DB Password: ${userData.email}, DB Password: ${userData.password}`);
+    // Debugging log
+    console.log(`DB Username: ${userData.username}, DB Email: ${userData.email}, DB Password: ${userData.password}`);
 
     if (userData.username === username) {
-      return { username: userData.username, email: userData.email, password: userData.password };
+      return {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password
+      };
     } else {
-      return { success: false, message: 'User not found' };
+      return {
+        success: false,
+        message: 'User not found'
+      };
     }
   } catch (error) {
     console.error('Error getting admin details:', error);
-    return { success: false, message: 'Internal server error' };
+    return {
+      success: false,
+      message: 'Internal server error'
+    };
   }
 };
 
@@ -193,3 +216,4 @@ exports.updateAdminDetails = async (email, username, newPassword, currentPasswor
     return { success: false, message: 'Internal server error' };
   }
 };
+

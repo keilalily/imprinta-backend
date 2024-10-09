@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/adminController');
 const forgotPasswordController = require('../controllers/forgotPasswordController');
+// Route to send the reset code
+router.post('/send-code', forgotPasswordController.sendResetCode);
 
-router.post('/login', adminController.login);
-router.get('/getAdminDetails', adminController.getAdminDetails);
-router.post('/updateAdminDetails', adminController.updateAdminDetails);
+// Route to verify the reset code
+router.post('/verify-code', forgotPasswordController.verifyCode);
 
+// Route to update the password
 router.post('/update-password', forgotPasswordController.updatePasswordController);
 
 module.exports = router;
