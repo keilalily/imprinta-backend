@@ -146,21 +146,7 @@ Account is locked until: ${lockUntilFormatted}. Try again later.` };
     throw new Error('Internal server error: ' + error.message);
   }
 };
-/////
 
-exports.getAdminEmail = async () => {
-  try {
-    const snapshot = await ref.child('login').once('value'); // Adjust to your database structure
-    const adminData = snapshot.val();
-    return adminData ? adminData.email : null; // Return admin email if found
-  } catch (error) {
-    console.error('Error fetching admin email:', error);
-    throw new Error('Error fetching admin email');
-  }
-};
-
-
-// - - - - -- - - -- 
 exports.getAdminDetails = async (username) => {
   try {
     const snapshot = await ref.once('value');

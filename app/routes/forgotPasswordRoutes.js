@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const forgotPasswordController = require('../controllers/forgotPasswordController');
+
 // Route to send the reset code
 router.post('/send-code', forgotPasswordController.sendResetCode);
 

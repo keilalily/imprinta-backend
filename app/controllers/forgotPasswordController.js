@@ -49,18 +49,18 @@ exports.verifyCode = async (req, res) => {
 
 
 exports.updatePasswordController = async (req, res) => {
-  const { email, newPassword } = req.body;
+  const { newPassword } = req.body;
 
   console.log("Received request to update password");
 
   // Check if email and newPassword are provided
-  if (!email || !newPassword) {
-    return res.status(400).json({ success: false, message: 'Email and new password are required' });
+  if (!newPassword) {
+    return res.status(400).json({ success: false, message: 'New password are required' });
   }
 
   try {
     // Call the service to update the password
-    const result = await forgotPasswordService.updatePassword(email, newPassword);
+    const result = await forgotPasswordService.updatePassword(newPassword);
     if (result.success) {
       return res.status(200).json({ message: result.message });
     } else {
