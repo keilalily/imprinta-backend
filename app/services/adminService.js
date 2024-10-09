@@ -69,7 +69,6 @@ Account is locked until: ${lockUntilFormatted}. Try again later.` };
     if (String(loginData.username) !== String(username)) {
       // Increment failed attempts if username is not found
       failedAttempts += 1;
-      console.log(`Username not found. Provided: ${username}, Expected: ${loginData.username}`);
 
       // Attempt to update failed attempts in the database
       try {
@@ -77,19 +76,25 @@ Account is locked until: ${lockUntilFormatted}. Try again later.` };
         let lockUntil = 0;
         if (failedAttempts >= 3) {
           lockUntil = now + LOCK_DURATION; // Lock the account for 1 hour
-          console.log(`Locking account due to ${failedAttempts} failed attempts. Lock until: ${lockUntil}`);
         }
 
         await ref.update({
           failedAttempts: failedAttempts,
           lockUntil: lockUntil // Update lockUntil if it needs to be locked
         });
+        
         console.log('Failed attempts and lockUntil updated in database.');
       } catch (error) {
         console.error('Failed to update failedAttempts:', error);
       }
 
-      return { success: false, status: 400, message: 'User not found' };
+      let remainingAttempts = 3 - failedAttempts;
+
+      return { 
+        success: false, 
+        status: 400, 
+        message: `User not found. You have ${remainingAttempts} left.`,
+      };
     } 
 
     // Validate the password
@@ -119,7 +124,11 @@ Account is locked until: ${lockUntilFormatted}. Try again later.` };
         console.error('Failed to update failedAttempts and lockUntil:', error);
       }
 
-      return { success: false, status: 401, message: 'Invalid password' };
+      return { 
+        success: false, 
+        status: 401, 
+        message: `Invalid password. You have ${remainingAttempts} left.`,
+      };
     } 
 
     // Reset failed attempts and lock until on successful login

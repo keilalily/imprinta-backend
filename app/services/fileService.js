@@ -5,8 +5,7 @@ const nodemailer = require('nodemailer');
 const WebSocket = require('ws');
 const { PDFDocument } = require('pdf-lib');
 const { exec } = require('child_process');
-const { jsPDF } = require('jspdf');
-require('jspdf-autotable');
+const ExcelJS = require('exceljs');
 const { db } = require('../config/firebaseConfig');
 const emailRef = db.ref("/login");
 
@@ -107,63 +106,82 @@ exports.processUpload = async (originalname, tempFilePath) => {
   }
 };
 
-exports.generatePDF = async (data, filePath) => {
-  const doc = new jsPDF();
+exports.generateExcel = async (data, filePath) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Sales Report');
 
-  const pageWidth = doc.internal.pageSize.width;
-  const centerX = pageWidth / 2;
+  // Add title row (Merged across columns A1 to E1)
+  worksheet.mergeCells('A1:E1');
+  worksheet.getCell('A1').value = 'IMPRINTA';
+  worksheet.getCell('A1').font = { size: 20, bold: true };
+  worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(1).height = 30;
 
-  doc.setFontSize(20);
-  doc.setFont('Times', 'bold');
-  const title = 'Vendo Printing Machine';
-  doc.text(title, centerX, 20, { align: 'center' }); 
+  // Add subtitle row (Merged across columns A2 to E2)
+  worksheet.mergeCells('A2:E2');
+  worksheet.getCell('A2').value = 'Sales Report';
+  worksheet.getCell('A2').font = { size: 14, bold: true };
+  worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(2).height = 25;
 
-  doc.setFontSize(14);
-  doc.setFont('Times', 'normal');
-  const subtitle = 'Sales Report';
-  doc.text(subtitle, centerX, 30, { align: 'center' }); 
-  const reportDate = `Date: ${new Date().toLocaleDateString()}`;
-  doc.text(reportDate, centerX, 40, { align: 'center' }); 
+  // Add date row (Merged across columns A3 to E3)
+  worksheet.mergeCells('A3:E3');
+  worksheet.getCell('A3').value = `Date: ${new Date().toLocaleDateString()}`;
+  worksheet.getCell('A3').font = { size: 12, italic: true };
+  worksheet.getCell('A3').alignment = { horizontal: 'center', vertical: 'middle' };
+  worksheet.getRow(3).height = 20;
 
-  const columns = ['Transaction ID', 'Date/Time', 'Service', 'Total Pages', 'Total Amount'];
-  const rows = data.map(item => [
-    item.transactionId || 'N/A',
-    item.date || 'N/A',
-    item.type || 'N/A',
-    item.totalPages ? item.totalPages.toString() : '0',
-    item.amount ? item.amount.toString() : '0'
-  ]);
+  // Add an empty row for spacing (row 4)
+  worksheet.addRow([]);
 
-  doc.autoTable({
-    columns: columns.map(col => ({ header: col })),
-    body: rows,
-    startY: 50,
-    margin: { left: 14, right: 14 },
-    styles: {
-      fontSize: 10,
-      cellPadding: 4,
-      halign: 'center',
-    },
-    headStyles: {
-      fillColor: [22, 160, 133],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 245],
-    },
-    tableWidth: 'auto',
-    theme: 'striped',
-    didDrawPage: (data) => {
-      doc.setFontSize(10);
-      doc.setFont('Times', 'normal');
-      doc.text(`Page ${doc.internal.getNumberOfPages()}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
-    },
+  // Add column headers (row 5)
+  worksheet.columns = [
+    { key: 'transactionId', width: 40 },
+    { key: 'date', width: 40 },
+    { key: 'type', width: 20 },
+    { key: 'totalPages', width: 15 },
+    { key: 'amount', width: 15 },
+  ];
+
+  // Add header row explicitly
+  const headerRow = worksheet.addRow(['Transaction ID', 'Date/Time', 'Service', 'Total Pages', 'Total Amount']);
+
+  // Apply styling to the header row
+  headerRow.font = { bold: true };
+  headerRow.eachCell(cell => {
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '16A085' },  // Green background for header
+      bgColor: { argb: 'FFFFFF' }   // White text color
+    };
+    cell.font = { color: { argb: 'FFFFFF' }, bold: true };
+    cell.alignment = { horizontal: 'center' };
   });
 
-  doc.save(filePath);
+  // Add data rows (starting from row 6)
+  data.forEach(item => {
+    worksheet.addRow({
+      transactionId: item.transactionId || 'N/A',
+      date: item.date || 'N/A',
+      type: item.type || 'N/A',
+      totalPages: item.totalPages ? item.totalPages.toString() : '0',
+      amount: item.amount ? item.amount.toString() : '0'
+    });
+  });
+
+  // Center-align all rows
+  worksheet.eachRow(row => {
+    row.alignment = { horizontal: 'center' };
+  });
+
+  // Save the Excel file
+  await workbook.xlsx.writeFile(filePath);
+
   return filePath;
 };
+
+
 
 exports.sendEmail = async (filePath, fileName) => {
   try {
