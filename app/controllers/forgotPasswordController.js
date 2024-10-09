@@ -1,25 +1,19 @@
 const forgotPasswordService = require('../services/forgotPasswordService');
-const { db } = require('../config/firebaseConfig'); // Adjust the path as necessary
+const { db } = require('../config/firebaseConfig');
 const adminRef = db.ref("/login");
 const adminService = require('../services/adminService');
 
 exports.sendResetCode = async (req, res) => {
-  const { email } = req.body;
 
   try {
-    const snapshot = await adminRef.once('value');
-    const childData = snapshot.val();
+    const result = await forgotPasswordService.sendResetCode();
 
-    // Encode email for verification
-    const encodedEmail = email.replace(/\./g, '.'); // Match your frontend encoding
-
-    if (childData && childData.email === encodedEmail) {
-      await forgotPasswordService.sendResetCode(encodedEmail);
+    if (result.success) {
       return res.status(200).json({ message: 'Reset code sent to your email' });
     } else {
-      console.log("Email not found in snapshot:", encodedEmail);
-      return res.status(404).json({ error: "Email not found" });
+      return res.status(500).json({ error: error.message });
     }
+    
   } catch (error) {
     console.error("Error sending reset code:", error);
     res.status(500).json({ error: error.message });
@@ -28,13 +22,10 @@ exports.sendResetCode = async (req, res) => {
 
 // Controller to verify the reset code
 exports.verifyCode = async (req, res) => {
-  const { email, enteredCode } = req.body;
-
-  // Encode email for verification
-  const encodedEmail = email.replace(/\./g, '.'); // Match your frontend encoding
+  const { enteredCode } = req.body;
 
   try {
-    const isValid = await forgotPasswordService.verifyResetCode(encodedEmail, enteredCode);
+    const isValid = await forgotPasswordService.verifyResetCode(enteredCode);
     
     if (isValid) {
       return res.status(200).json({ message: 'Code is valid. You can proceed to reset your password.' });

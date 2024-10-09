@@ -27,8 +27,6 @@ const emailRoutes = require('./app/routes/emailRoutes');
 
 const forgotPasswordRoutes = require('./app/routes/forgotPasswordRoutes');
 
-
-
 // // Arduino Code
 // const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
 // const arduinoRoutes = require('./app/routes/arduinoRoutes');
