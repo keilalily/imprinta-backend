@@ -16,14 +16,14 @@ const transporter = nodemailer.createTransport({
 // Function to send email with the reset code
 exports.sendEmail = async (email, resetCode) => {
     const mailOptions = {
-        from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`, // Sender's email
+        from: `"IMPRINTA" <${process.env.SMTP_USER}>`,
         to: email, // Recipient's email
         subject: 'Password Reset Code',
-        text: `Enter this code to reset your password: ${resetCode}`, // Include the reset code in the email body
+        text: `Enter this code to reset your password: ${resetCode}`,
     };
 
     try {
-        await transporter.sendMail(mailOptions); // Send the email
+        await transporter.sendMail(mailOptions);
         console.log(`Password reset code sent to ${email}`);
     } catch (error) {
         console.error(`Error sending email: ${error.message}`);

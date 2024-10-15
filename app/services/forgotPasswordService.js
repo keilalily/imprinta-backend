@@ -25,7 +25,7 @@ exports.sendResetCode = async () => {
   await adminRef.update(updates);
 
   try {
-    await sendEmail(email, `Your password reset code is: ${verifyResetCode}`);
+    await sendEmail(email, verifyResetCode);
     return { success: true };
   } catch (error) {
     throw new Error("Failed to send email: " + error.message);
