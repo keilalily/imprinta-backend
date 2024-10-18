@@ -6,7 +6,7 @@ const { PDFDocument } = require('pdf-lib');
 const pdfPrinter = require('pdf-to-printer');
 const { completeTransaction } = require('../utils/transaction');
 
-const printerLong = 'Brother DCP-T420W';
+const printerLong = 'Brother DCP-T720DW'; // change this to name ng printer na long
 const printerShort = 'Brother DCP-T420W';
 
 const loadPDF = async (pdfBytes) => {

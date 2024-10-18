@@ -21,7 +21,7 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
     console.log(`Output file path: ${outputFile}`);
 
     const naps2Path = process.env.NAPS2_PATH;
-
+    // change yung name ng scanner, gamitin yung brother scanner ng dcp t70dw
     const scanCommand = `"${naps2Path}" --noprofile --output "${outputFile}" --driver "wia" --device "Brother Scanner c1" --dpi "${resolution}" --bitdepth "${color}" --pagesize "${paperSize}"`;
 
     console.log('Executing command:', scanCommand);
