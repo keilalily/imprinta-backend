@@ -9,6 +9,33 @@ const { completeTransaction } = require('../utils/transaction');
 const printerLong = 'Brother DCP-T720DW'; // change this to name ng printer na long
 const printerShort = 'Brother DCP-T420W';
 
+const checkPrinterStatus = (printerName) => {
+  return new Promise((resolve, reject) => {
+    // Use PowerShell to execute the command
+    exec(`powershell -Command "Get-Printer -Name '${printerName}' | Select-Object -ExpandProperty PrinterStatus"`, (error, stdout, stderr) => {
+      if (error || stderr) {
+        return reject(`Error fetching printer status: ${stderr || error.message}`);
+      }
+      
+      const status = stdout.trim();
+
+      if (!status) {
+        // If no status is returned, the printer is unavailable or not connected
+        resolve(false);
+      } else if (status === 'Offline' || status === 'NotAvailable') {
+        // Printer is offline or not available
+        resolve(false);
+      } else if (status === 'Ready') {
+        // Printer is online and ready for printing
+        resolve(true);
+      } else {
+        // Handle other statuses (like error, busy, etc.)
+        resolve(false);
+      }
+    });
+  });
+};
+
 const loadPDF = async (pdfBytes) => {
   try {
     const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -184,13 +211,30 @@ const printPDF = async (pdfBytes, printerName) => {
   try {
     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
     await fs.writeFile(tempFilePath, pdfBytes);
-    await pdfPrinter.print(tempFilePath, { printer: printerName });
-    await fs.unlink(tempFilePath);
-    return true;
+    const isOnline = await checkPrinterStatus(printerName);
+    if (isOnline) {
+      await pdfPrinter.print(tempFilePath, { printer: printerName });
+      console.log('Printing initiated successfully.');
+      return true;
+    } else {
+      console.log('Printer is not connected or not functioning properly.');
+      return false;
+    }
   } catch (error) {
     console.error('Error printing PDF:', error);
     await fs.unlink(tempFilePath);
     throw error;
+  } finally {
+    try {
+      await fs.access(tempFilePath);
+      await fs.unlink(tempFilePath);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        console.warn('Temp file already deleted or does not exist.');
+      } else {
+        console.error('Error deleting temp file:', err);
+      }
+    }
   }
 };
 

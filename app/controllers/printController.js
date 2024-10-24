@@ -34,7 +34,7 @@ const printDocument = async (req, res) => {
     if (result.success) {
       res.json({ message: 'Printing successful' });
     } else {
-      res.status(500).json({ error: result.message });
+      res.json({ message: 'Printer is not connected or is offline.' });
     }
 
   } catch (error) {
