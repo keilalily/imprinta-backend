@@ -22,7 +22,7 @@ exports.scanDocument = async (paperSizeIndex, colorIndex, resolutionIndex) => {
 
     const naps2Path = process.env.NAPS2_PATH;
     // change yung name ng scanner, gamitin yung brother scanner ng dcp t70dw
-    const scanCommand = `"${naps2Path}" --noprofile --output "${outputFile}" --driver "wia" --device "Brother Scanner c1" --dpi "${resolution}" --bitdepth "${color}" --pagesize "${paperSize}"`;
+    const scanCommand = `"${naps2Path}" --noprofile --output "${outputFile}" --driver "twain" --device "TW-Brother DCP-T720DW" --dpi "${resolution}" --bitdepth "${color}" --pagesize "${paperSize}"`;
 
     console.log('Executing command:', scanCommand);
     await new Promise((resolve, reject) => {
@@ -79,7 +79,7 @@ exports.sendScannedFile = async (email, fileData) => {
   });
 
   let mailOptions = {
-    from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
+    from: `"IMPRINTA" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Your Scanned Document',
     text: 'Please find the scanned document attached.',
@@ -94,6 +94,6 @@ exports.sendScannedFile = async (email, fileData) => {
 
   let info = await transporter.sendMail(mailOptions);
 
-  // completeTransaction();
+  completeTransaction();
   return { success: true, messageId: info.messageId };
 };

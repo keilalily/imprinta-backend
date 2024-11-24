@@ -4,7 +4,7 @@ const pdfPrinter = require('pdf-to-printer');
 const { PDFDocument } = require('pdf-lib');
 const { completeTransaction } = require('../utils/transaction');
 
-const printerLong = 'Brother DCP-T420W';
+const printerLong = 'Brother DCP-T720DW Printer';
 const printerShort = 'Brother DCP-T420W';
 
 const loadPDF = async (pdfBytes) => {
@@ -57,7 +57,7 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
 
     const printSuccess = await printPDF(updatedPdfBytes, printerName);
     if (printSuccess) {
-      // completeTransaction();
+      completeTransaction();
       return { success: true, message: 'Printing successful!' };
     } else {
       throw new Error('Printing failed.');

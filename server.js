@@ -28,8 +28,8 @@ const emailRoutes = require('./app/routes/emailRoutes');
 const forgotPasswordRoutes = require('./app/routes/forgotPasswordRoutes');
 
 // // Arduino Code
-// const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
-// const arduinoRoutes = require('./app/routes/arduinoRoutes');
+const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
+const arduinoRoutes = require('./app/routes/arduinoRoutes');
 
 
 const app = express();
@@ -46,13 +46,13 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 // Initialize Arduino and File Service with the WebSocket server
-// initSerialPort(wss);
+initSerialPort(wss);
 setWebSocketServer(wss);
 
-// wss.on('connection', (ws) => {
-//   console.log('New client connected');
-//   ws.send(JSON.stringify({ pulseCount: getPulseCount(), amountInserted: getAmountInserted() }));
-// });
+wss.on('connection', (ws) => {
+  console.log('New client connected');
+  ws.send(JSON.stringify({ pulseCount: getPulseCount(), amountInserted: getAmountInserted() }));
+});
 
 //schedule to send email daily  *(min) *(hour) *(day) *(week) *(month)
 // * = meaning every possible value for that field

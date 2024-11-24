@@ -6,7 +6,7 @@ const { PDFDocument } = require('pdf-lib');
 const pdfPrinter = require('pdf-to-printer');
 const { completeTransaction } = require('../utils/transaction');
 
-const printerLong = 'Brother DCP-T720DW'; // change this to name ng printer na long
+const printerLong = 'Brother DCP-T720DW Printer'; // change this to name ng printer na long
 const printerShort = 'Brother DCP-T420W';
 
 const checkPrinterStatus = (printerName) => {
@@ -25,7 +25,7 @@ const checkPrinterStatus = (printerName) => {
       } else if (status === 'Offline' || status === 'NotAvailable') {
         // Printer is offline or not available
         resolve(false);
-      } else if (status === 'Ready') {
+      } else if (status === 'Normal') {
         // Printer is online and ready for printing
         resolve(true);
       } else {
@@ -258,7 +258,7 @@ const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
 
     const printSuccess = await printPDF(updatedPdfBytes, printerName);
     if (printSuccess) {
-      // completeTransaction();
+      completeTransaction();
       return { success: true, message: 'Printing successful!' };
     } else {
       throw new Error('Printing failed.');
