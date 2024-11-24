@@ -27,7 +27,7 @@ const emailRoutes = require('./app/routes/emailRoutes');
 
 const forgotPasswordRoutes = require('./app/routes/forgotPasswordRoutes');
 
-// // Arduino Code
+// Arduino Code
 const { initSerialPort, getPulseCount, getAmountInserted } = require('./app/services/arduinoService');
 const arduinoRoutes = require('./app/routes/arduinoRoutes');
 
@@ -38,7 +38,7 @@ app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// app.use('/api', arduinoRoutes);
+app.use('/api', arduinoRoutes);
 
 app.use('/api/sales', salesRoutes);
 

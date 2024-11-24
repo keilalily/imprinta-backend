@@ -27,7 +27,7 @@ const sendEmailNotification = async () => {
         });
 
         const mailOptions = {
-            from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
+            from: `"IMPRINTA" <${process.env.SMTP_USER}>`,
             to: email,
             subject: 'Reminder: Sales Documents Deletion',
             text: `All sales records will be deleted in one hour. Please make sure to save any necessary information before then.`,

@@ -21,7 +21,7 @@ const sendLowInventoryEmail = (paperType, remaining, email) => {
   });
   
   const mailOptions = {
-    from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
+    from: `"IMPRINTA" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Low Paper Inventory Alert',
     text: `The remaining ${paperType} is low. Only ${remaining} papers left. Please restock soon.`,
@@ -45,6 +45,7 @@ const updateInventory = async (data) => {
 const getInventory = async () => {
   const snapshot = await ref.once('value');
   let data = snapshot.val();
+  console.log(data);
   const emailSnapshot = await emailRef.once('value');
   let userData = emailSnapshot.val();
   const email = userData ? userData.email : null;
