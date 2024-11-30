@@ -4,21 +4,42 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    return res.status(400).json({ success: false, message: 'Username and password are required' });
+    return res.status(400).json({
+      success: false,
+      status: 400,
+      message: 'Username and password are required',
+    });
   }
 
   try {
     const result = await adminService.login(username, password);
 
     if (result.success) {
-      return res.status(200).json({ message: 'Login successful' });
+      // Login successful
+      return res.status(200).json({ 
+        success: true, 
+        status: 200, 
+        message: result.message 
+      });
     } else {
-      return res.status(401).json({ message: result.message });
+      // Login failed (specific reason provided by the service)
+      return res.status(result.status || 400).json({
+        success: false,
+        status: result.status,
+        message: result.message,
+      });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    // Internal server error
+    console.error('Error in adminController login:', error.message);
+    return res.status(500).json({
+      success: false,
+      status: 500,
+      message: 'Internal server error. Please try again later.',
+    });
   }
 };
+
 
 exports.getAdminDetails = async (req, res) => {
   const { username } = req.query;
