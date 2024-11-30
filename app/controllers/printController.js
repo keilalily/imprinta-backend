@@ -47,34 +47,3 @@ module.exports = {
   modifyPdfPreview,
   printDocument
 };
-
-
-
-
-// const printDocument = async (req, res) => {
-//   try {
-//     const { pdfBytes, paperSizeIndex, colorIndex, pagesIndex, selectedPages, copies } = req.body;
-//     const result = await printService.processAndPrint(
-//       pdfBytes, 
-//       paperSizeIndex,
-//       colorIndex,
-//       pagesIndex,
-//       selectedPages,
-//       copies
-//     );
-
-//     if (result.success) {
-//       res.json({ message: 'Printing successful' });
-//     } else {
-//       res.status(500).json({ error: result.message });
-//     }
-
-//   } catch (error) {
-//     console.error('Error printing file:', error);
-//     res.status(500).json({ error: 'Error printing file' });
-//   }
-// }
-
-// module.exports = {
-//   printDocument
-// };

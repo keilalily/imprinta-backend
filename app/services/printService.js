@@ -1,6 +1,8 @@
 require('dotenv').config();
 const fs = require('fs').promises;
 const path = require('path');
+const os = require('os');
+const tempDir = os.tmpdir();
 const { exec } = require('child_process');
 const { PDFDocument } = require('pdf-lib');
 const pdfPrinter = require('pdf-to-printer');
@@ -165,8 +167,10 @@ const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex
       await resizePages(pdfDoc, targetSize);
       console.log('PDF pages resized to fit the paper size:', targetSize);
   
-      tempPdfPath = path.join(__dirname, 'temp', `temp_${Date.now()}.pdf`);
-      finalPdfPath = path.join(__dirname, 'temp', `final_${Date.now()}.pdf`);
+      // tempPdfPath = path.join(__dirname, 'temp', `temp_${Date.now()}.pdf`);
+      // finalPdfPath = path.join(__dirname, 'temp', `final_${Date.now()}.pdf`);
+      tempPdfPath = path.join(tempDir, `temp_${Date.now()}.pdf`);
+      finalPdfPath = path.join(tempDir, `final_${Date.now()}.pdf`);
   
       const updatedPdfBytes = await pdfDoc.save();
       await fs.writeFile(tempPdfPath, updatedPdfBytes);
@@ -189,6 +193,7 @@ const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex
     } finally {
         if (tempPdfPath) {
           try {
+            await fs.writeFile(tempPdfPath, '');
             await fs.unlink(tempPdfPath);
             console.log('Temporary file deleted:', tempPdfPath);
           } catch (err) {
