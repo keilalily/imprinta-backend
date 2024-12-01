@@ -20,17 +20,22 @@ exports.exportData = async (req, res) => {
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
   const dateString = `${yyyy}${mm}${dd}`;
-  const fileName = `${dateString}_SalesReport.xlsx`;
-  const filePath = path.join(__dirname, 'output', fileName);
+  const fileName = `${dateString}_SalesReport`;
+  // const filePath = path.join(__dirname, 'output', fileName);
 
   try {
-    const savedFilePath = await fileService.generateExcel(data, filePath);
+    // const savedFilePath = await fileService.generateExcel(data, filePath);
+    const excelBuffer = await fileService.generateExcelBuffer(data);
 
     if (action === 'Send to Email') {
-      const emailResult = await fileService.sendEmail(savedFilePath, fileName);
+      const emailResult = await fileService.sendEmail(excelBuffer, fileName);
       res.send(`Email sent successfully. Message ID: ${emailResult.messageId}`);
     } else {
-      res.send(`PDF saved locally at: ${savedFilePath}`);
+      // Set response headers for download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+      res.send(excelBuffer);
+      // res.send(`PDF saved locally at: ${savedFilePath}`);
     }
   } catch (error) {
     console.error('Error:', error);

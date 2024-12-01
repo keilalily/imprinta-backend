@@ -106,7 +106,7 @@ exports.processUpload = async (originalname, tempFilePath) => {
   }
 };
 
-exports.generateExcel = async (data, filePath) => {
+exports.generateExcelBuffer = async (data) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Sales Report');
 
@@ -176,16 +176,17 @@ exports.generateExcel = async (data, filePath) => {
   });
 
   // Save the Excel file
-  await workbook.xlsx.writeFile(filePath);
+  // await workbook.xlsx.writeFile(filePath);
 
-  return filePath;
+  // return filePath;
+  const buffer = await workbook.xlsx.writeBuffer();
+  return buffer;
 };
 
 
 
-exports.sendEmail = async (filePath, fileName) => {
+exports.sendEmail = async (excelBuffer, fileName) => {
   try {
-    const fileBuffer = await fs.readFile(filePath);
     const emailSnapshot = await emailRef.once('value');
     let userData = emailSnapshot.val();
     const email = userData ? userData.email : null;
@@ -202,19 +203,18 @@ exports.sendEmail = async (filePath, fileName) => {
     });
 
     let mailOptions = {
-      from: `"Vendo Printing Machine" <${process.env.SMTP_USER}>`,
+      from: `"IMPRINTA" <${process.env.SMTP_USER}>`,
       to: email,
       subject: 'Exported Data PDF',
       text: 'Please find the attached PDF.',
       attachments: [{
         filename: fileName,
-        content: fileBuffer,
+        content: excelBuffer,
         encoding: 'base64'
       }]
     };
 
     let info = await transporter.sendMail(mailOptions);
-    await fs.unlink(filePath);
     return { success: true, messageId: info.messageId };
 
   } catch (error) {
