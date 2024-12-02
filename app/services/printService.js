@@ -6,7 +6,6 @@ const tempDir = os.tmpdir();
 const { exec } = require('child_process');
 const { PDFDocument } = require('pdf-lib');
 const pdfPrinter = require('pdf-to-printer');
-const { exec } = require('child_process'); 
 const { completeTransaction } = require('../utils/transaction');
 
 const WmiClient = require('wmi-client');
