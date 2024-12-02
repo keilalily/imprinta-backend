@@ -7,34 +7,73 @@ const { exec } = require('child_process');
 const { PDFDocument } = require('pdf-lib');
 const pdfPrinter = require('pdf-to-printer');
 const { completeTransaction } = require('../utils/transaction');
+// const { ActiveXObject } = require('winax');
+const winax = require('winax');
+
+const bPac = new winax.Object('bPac3.BrotherBpac');
 
 const printerLong = 'Brother DCP-T720DW Printer'; // change this to name ng printer na long
 const printerShort = 'Brother DCP-T420W';
 
+// const checkPrinterStatus = (printerName) => {
+//   return new Promise((resolve, reject) => {
+//     // Use PowerShell to execute the command
+//     exec(`powershell -Command "Get-Printer -Name '${printerName}' | Select-Object -ExpandProperty PrinterStatus"`, (error, stdout, stderr) => {
+//       if (error || stderr) {
+//         return reject(`Error fetching printer status: ${stderr || error.message}`);
+//       }
+      
+//       const status = stdout.trim();
+
+//       if (!status) {
+//         // If no status is returned, the printer is unavailable or not connected
+//         resolve(false);
+//       } else if (status === 'Offline' || status === 'NotAvailable') {
+//         // Printer is offline or not available
+//         resolve(false);
+//       } else if (status === 'Normal') {
+//         // Printer is online and ready for printing
+//         resolve(true);
+//       } else {
+//         // Handle other statuses (like error, busy, etc.)
+//         resolve(false);
+//       }
+//     });
+//   });
+// };
 const checkPrinterStatus = (printerName) => {
   return new Promise((resolve, reject) => {
-    // Use PowerShell to execute the command
-    exec(`powershell -Command "Get-Printer -Name '${printerName}' | Select-Object -ExpandProperty PrinterStatus"`, (error, stdout, stderr) => {
-      if (error || stderr) {
-        return reject(`Error fetching printer status: ${stderr || error.message}`);
-      }
-      
-      const status = stdout.trim();
+    try {
+      // Create the b-PAC COM object
+      const bPac = new winax.Object('bPac3.BrotherBpac'); // This might be the correct object for your installed version
 
-      if (!status) {
-        // If no status is returned, the printer is unavailable or not connected
-        resolve(false);
-      } else if (status === 'Offline' || status === 'NotAvailable') {
-        // Printer is offline or not available
-        resolve(false);
-      } else if (status === 'Normal') {
-        // Printer is online and ready for printing
-        resolve(true);
-      } else {
-        // Handle other statuses (like error, busy, etc.)
-        resolve(false);
+      // Initialize b-PAC (optional based on version)
+      const initResult = bPac.Initialize();
+      if (!initResult) {
+        return reject('Failed to initialize b-PAC SDK');
       }
-    });
+
+      // Check printer status using b-PAC
+      const status = bPac.GetPrinterStatus(printerName);
+
+      switch (status) {
+        case 0:
+          resolve(true); // Printer is ready
+          break;
+        case 1:
+        case 2:
+          resolve(false); // Printer is offline or has an error (e.g., paper jam)
+          break;
+        case 3:
+          resolve(false); // Printer has low ink
+          break;
+        default:
+          resolve(false);
+      }
+    } catch (error) {
+      console.error('Error checking printer status:', error);
+      reject('Error checking printer status');
+    }
   });
 };
 
@@ -211,34 +250,73 @@ const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex
     }
 }
 
+// const printPDF = async (pdfBytes, printerName) => {
+//   const tempFilePath = path.join(__dirname, 'temp', `print_${Date.now()}.pdf`);
+//   try {
+//     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
+//     await fs.writeFile(tempFilePath, pdfBytes);
+//     const isOnline = await checkPrinterStatus(printerName);
+//     if (isOnline) {
+//       await pdfPrinter.print(tempFilePath, { printer: printerName });
+//       console.log('Printing initiated successfully.');
+//       return true;
+//     } else {
+//       console.log('Printer is not connected or not functioning properly.');
+//       return false;
+//     }
+//   } catch (error) {
+//     console.error('Error printing PDF:', error);
+//     await fs.unlink(tempFilePath);
+//     throw error;
+//   } finally {
+//     try {
+//       await fs.access(tempFilePath);
+//       await fs.unlink(tempFilePath);
+//     } catch (err) {
+//       if (err.code === 'ENOENT') {
+//         console.warn('Temp file already deleted or does not exist.');
+//       } else {
+//         console.error('Error deleting temp file:', err);
+//       }
+//     }
+//   }
+// };
+
 const printPDF = async (pdfBytes, printerName) => {
-  const tempFilePath = path.join(__dirname, 'temp', `print_${Date.now()}.pdf`);
+  const tempFilePath = path.join(tempDir, `print_${Date.now()}.pdf`);
   try {
+    // Write the PDF file to disk (temp file)
     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
     await fs.writeFile(tempFilePath, pdfBytes);
+
+    // Check printer status using b-PAC
     const isOnline = await checkPrinterStatus(printerName);
     if (isOnline) {
-      await pdfPrinter.print(tempFilePath, { printer: printerName });
-      console.log('Printing initiated successfully.');
-      return true;
+      // Create the b-PAC COM object
+      const bPac = new winax.Object('bPac3.BrotherBpac');
+      const printResult = bPac.Print(printerName, tempFilePath);
+
+      if (printResult) {
+        console.log('Printing initiated successfully.');
+        return true;
+      } else {
+        console.log('Failed to print using b-PAC.');
+        return false;
+      }
     } else {
       console.log('Printer is not connected or not functioning properly.');
       return false;
     }
   } catch (error) {
     console.error('Error printing PDF:', error);
-    await fs.unlink(tempFilePath);
+    await fs.unlink(tempFilePath); // Clean up temp file
     throw error;
   } finally {
+    // Delete the temp file after printing
     try {
-      await fs.access(tempFilePath);
       await fs.unlink(tempFilePath);
     } catch (err) {
-      if (err.code === 'ENOENT') {
-        console.warn('Temp file already deleted or does not exist.');
-      } else {
-        console.error('Error deleting temp file:', err);
-      }
+      console.error('Error deleting temp file:', err);
     }
   }
 };
