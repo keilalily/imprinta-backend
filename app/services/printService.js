@@ -62,9 +62,15 @@ const checkPrinterStatus = async (printerName) => {
           });
       });
 
-      // Check if the printer name appears in the event log output
-      if (result.includes(printerName)) {
-          console.log('Printer Error detected, possibly a paper jam!');
+      // Parse the result for relevant printer error messages
+      const errorKeywords = ['No paper', 'Jammed', 'Error'];
+      const lines = result.split('\n');
+      const printerErrors = lines.filter(line =>
+          line.includes(printerName) && errorKeywords.some(keyword => line.includes(keyword))
+      );
+
+      if (printerErrors.length > 0) {
+          console.log('Printer Error detected:', printerErrors.join('\n'));
           return false; // Printer is in an error state
       }
 
