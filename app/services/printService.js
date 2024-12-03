@@ -46,88 +46,34 @@ const printerShort = 'Brother DCP-T420W';
 
 const checkPrinterStatus = async (printerName) => {
   try {
-    // Query printer status via WMI
-    const result = await new Promise((resolve, reject) => {
-      wmi.query(
-        `SELECT Name, PrinterStatus, DetectedErrorState, StatusInfo FROM Win32_Printer WHERE Name='${printerName}'`,
-        (err, result) => {
-          if (err) {
-            return reject(`Error fetching printer status: ${err.message}`);
-          }
-          resolve(result);
-        }
-      );
-    });
+      // Query Event Log for printer-related events
+      const result = await new Promise((resolve, reject) => {
+          const query = '*[System[Provider[@Name="Microsoft-Windows-PrintService"] and (EventID=307 or EventID=808)]]';
+          const command = `wevtutil qe System /q:"${query}" /f:text`;
 
-    // Ensure the printer is found in the result
-    if (result.length === 0) {
-      console.log(`Printer with name '${printerName}' not found.`);
-      return false; // Printer not found
-    }
+          exec(command, (error, stdout, stderr) => {
+              if (error) {
+                  return reject(`Error executing command: ${error.message}`);
+              }
+              if (stderr) {
+                  return reject(`Command error output: ${stderr}`);
+              }
+              resolve(stdout);
+          });
+      });
 
-    // Extract relevant data from result
-    const printer = result[0];
-    const { PrinterStatus, DetectedErrorState, StatusInfo } = printer;
-
-    // Interpret the status message
-    const statusMessage = interpretStatus(PrinterStatus, DetectedErrorState, StatusInfo);
-    console.log(`Printer Status: ${statusMessage}`); // Log the status for debugging
-
-    // Check if the printer is actively printing and if an error occurs
-    if (PrinterStatus === 4) { // Printer is printing
-      if (DetectedErrorState === 8) { // Paper jam detected
-        console.log('Paper jam detected during printing!');
-        return false; // Printer is in error state due to paper jam
+      // Check if the printer name appears in the event log output
+      if (result.includes(printerName)) {
+          console.log('Printer Error detected, possibly a paper jam!');
+          return false; // Printer is in an error state
       }
-    }
 
-    // Otherwise, check for general error states (e.g., low toner, no paper)
-    if (statusMessage.includes('Jammed') || statusMessage.includes('Low toner') || statusMessage.includes('No paper')) {
-      return false; // Printer is in error state
-    }
-
-    return true; // Printer is ready
+      console.log('Printer is operating normally.');
+      return true; // Printer is ready
   } catch (error) {
-    console.error('Error checking printer status:', error);
-    return false; // Assume printer is not ready on error
+      console.error('Error checking printer status:', error);
+      return false; // Assume printer is not ready on error
   }
-};
-
-// Interpret PrinterStatus and Error States
-const interpretStatus = (printerStatus, detectedErrorState, statusInfo) => {
-  const printerStatusMessages = {
-    1: 'Other',
-    2: 'Unknown',
-    3: 'Idle',
-    4: 'Printing',
-    5: 'Warmup',
-    6: 'Stopped',
-    7: 'Offline',
-  };
-
-  const errorStateMessages = {
-    0: 'Unknown error',
-    1: 'Other',
-    2: 'No error',
-    3: 'Low paper',
-    4: 'No paper',
-    5: 'Low toner',
-    6: 'No toner',
-    7: 'Door open',
-    8: 'Jammed', // This corresponds to paper jam
-    9: 'Service requested',
-    10: 'Output bin full',
-  };
-
-  let message = printerStatusMessages[printerStatus] || 'Unknown status';
-  if (detectedErrorState in errorStateMessages) {
-    message += ` (${errorStateMessages[detectedErrorState]})`;
-  }
-  if (statusInfo) {
-    message += ` - Additional Info: ${statusInfo}`;
-  }
-
-  return message;
 };
 
 const loadPDF = async (pdfBytes) => {
@@ -371,7 +317,7 @@ const printPDF = async (pdfBytes, printerName) => {
     // Step 2: Check if the printer is online and ready to print
     const isOnline = await checkPrinterStatus(printerName);
     if (!isOnline) {
-      console.log('Printer is not connected or not functioning properly.');
+      console.log('Printer is not ready. Check for errors.');
       return false;
     }
 
