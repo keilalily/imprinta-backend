@@ -46,39 +46,49 @@ const printerShort = 'Brother DCP-T420W';
 
 const checkPrinterStatus = async (printerName) => {
   try {
-      // Query Event Log for printer-related events
       const result = await new Promise((resolve, reject) => {
-          const query = '*[System[Provider[@Name="Microsoft-Windows-PrintService"] and (EventID=307 or EventID=808)]]';
-          const command = `wevtutil qe System /q:"${query}" /f:text`;
-
-          exec(command, (error, stdout, stderr) => {
-              if (error) {
-                  return reject(`Error executing command: ${error.message}`);
+          wmi.query(
+              `SELECT Name, PrinterStatus, WorkOffline, DetectedErrorState FROM Win32_Printer WHERE Name='${printerName}'`,
+              (err, data) => {
+                  if (err) return reject(`Error fetching printer status: ${err.message}`);
+                  resolve(data);
               }
-              if (stderr) {
-                  return reject(`Command error output: ${stderr}`);
-              }
-              resolve(stdout);
-          });
+          );
       });
 
-      // Parse the result for relevant printer error messages
-      const errorKeywords = ['No paper', 'Jammed', 'Error'];
-      const lines = result.split('\n');
-      const printerErrors = lines.filter(line =>
-          line.includes(printerName) && errorKeywords.some(keyword => line.includes(keyword))
-      );
-
-      if (printerErrors.length > 0) {
-          console.log('Printer Error detected:', printerErrors.join('\n'));
-          return false; // Printer is in an error state
+      if (result.length === 0) {
+          console.log(`Printer '${printerName}' not found.`);
+          return false;
       }
 
-      console.log('Printer is operating normally.');
-      return true; // Printer is ready
+      const printer = result[0];
+      const { PrinterStatus, WorkOffline, DetectedErrorState } = printer;
+
+      // Interpret Printer Status
+      if (WorkOffline) {
+          console.log(`Printer '${printerName}' is offline.`);
+          return false;
+      }
+
+      if (DetectedErrorState) {
+          console.log(`Printer '${printerName}' detected an error: ${DetectedErrorState}`);
+          return false;
+      }
+
+      switch (PrinterStatus) {
+          case 3: // Idle
+              console.log(`Printer '${printerName}' is ready.`);
+              return true;
+          case 4: // Printing
+              console.log(`Printer '${printerName}' is currently printing.`);
+              return true;
+          default:
+              console.log(`Printer '${printerName}' has an unknown status: ${PrinterStatus}`);
+              return false;
+      }
   } catch (error) {
       console.error('Error checking printer status:', error);
-      return false; // Assume printer is not ready on error
+      return false;
   }
 };
 
