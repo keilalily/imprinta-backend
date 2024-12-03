@@ -17,79 +17,31 @@ const wmi = new WmiClient({
 const printerLong = 'Brother DCP-T720DW Printer'; // change this to name ng printer na long
 const printerShort = 'Brother DCP-T420W';
 
-// const checkPrinterStatus = (printerName) => {
-//   return new Promise((resolve, reject) => {
-//     // Use PowerShell to execute the command
-//     exec(`powershell -Command "Get-Printer -Name '${printerName}' | Select-Object -ExpandProperty PrinterStatus"`, (error, stdout, stderr) => {
-//       if (error || stderr) {
-//         return reject(`Error fetching printer status: ${stderr || error.message}`);
-//       }
+const checkPrinterStatus = (printerName) => {
+  return new Promise((resolve, reject) => {
+    // Use PowerShell to execute the command
+    exec(`powershell -Command "Get-Printer -Name '${printerName}' | Select-Object -ExpandProperty PrinterStatus"`, (error, stdout, stderr) => {
+      if (error || stderr) {
+        return reject(`Error fetching printer status: ${stderr || error.message}`);
+      }
       
-//       const status = stdout.trim();
+      const status = stdout.trim();
 
-//       if (!status) {
-//         // If no status is returned, the printer is unavailable or not connected
-//         resolve(false);
-//       } else if (status === 'Offline' || status === 'NotAvailable') {
-//         // Printer is offline or not available
-//         resolve(false);
-//       } else if (status === 'Normal') {
-//         // Printer is online and ready for printing
-//         resolve(true);
-//       } else {
-//         // Handle other statuses (like error, busy, etc.)
-//         resolve(false);
-//       }
-//     });
-//   });
-// };
-
-const checkPrinterStatus = async (printerName) => {
-  try {
-      const result = await new Promise((resolve, reject) => {
-          wmi.query(
-              `SELECT Name, PrinterStatus, WorkOffline, DetectedErrorState FROM Win32_Printer WHERE Name='${printerName}'`,
-              (err, data) => {
-                  if (err) return reject(`Error fetching printer status: ${err.message}`);
-                  resolve(data);
-              }
-          );
-      });
-
-      if (result.length === 0) {
-          console.log(`Printer '${printerName}' not found.`);
-          return false;
+      if (!status) {
+        // If no status is returned, the printer is unavailable or not connected
+        resolve(false);
+      } else if (status === 'Offline' || status === 'NotAvailable') {
+        // Printer is offline or not available
+        resolve(false);
+      } else if (status === 'Normal') {
+        // Printer is online and ready for printing
+        resolve(true);
+      } else {
+        // Handle other statuses (like error, busy, etc.)
+        resolve(false);
       }
-
-      const printer = result[0];
-      const { PrinterStatus, WorkOffline, DetectedErrorState } = printer;
-
-      // Interpret Printer Status
-      if (WorkOffline) {
-          console.log(`Printer '${printerName}' is offline.`);
-          return false;
-      }
-
-      if (DetectedErrorState) {
-          console.log(`Printer '${printerName}' detected an error: ${DetectedErrorState}`);
-          return false;
-      }
-
-      switch (PrinterStatus) {
-          case 3: // Idle
-              console.log(`Printer '${printerName}' is ready.`);
-              return true;
-          case 4: // Printing
-              console.log(`Printer '${printerName}' is currently printing.`);
-              return true;
-          default:
-              console.log(`Printer '${printerName}' has an unknown status: ${PrinterStatus}`);
-              return false;
-      }
-  } catch (error) {
-      console.error('Error checking printer status:', error);
-      return false;
-  }
+    });
+  });
 };
 
 const loadPDF = async (pdfBytes) => {
@@ -265,106 +217,25 @@ const modifyPdfPreview = async (pdfBytes, paperSizeIndex, colorIndex, pagesIndex
     }
 }
 
-// const cancelPrintJob = async (printerName) => {
-//   try {
-//     // Prepare the PowerShell command to cancel print jobs for the given printer
-//     const psCommand = `
-//       $printerName = '${printerName}';
-//       Get-WmiObject -Class Win32_PrintJob -Filter "Name = '$printerName'" | ForEach-Object {
-//         $_.Delete()
-//       }
-//     `;
-
-//     // Execute the PowerShell command
-//     exec(`powershell -Command "${psCommand}"`, (error, stdout, stderr) => {
-//       if (error) {
-//         console.error(`Error canceling print job: ${stderr}`);
-//       } else {
-//         console.log(`Successfully cancelled print jobs for printer: ${printerName}`);
-//       }
-//     });
-//   } catch (error) {
-//     console.error('Error executing PowerShell command:', error);
-//   }
-// };
-
-const cancelPrintJob = async (printerName) => {
-  try {
-    // Get the print jobs in the spooler for the given printer
-    const result = await new Promise((resolve, reject) => {
-      wmi.query(
-        `SELECT JobId, Document, Status FROM Win32_PrintJob WHERE Name='${printerName}'`,
-        (err, result) => {
-          if (err) {
-            return reject(`Error fetching print jobs: ${err.message}`);
-          }
-          resolve(result);
-        }
-      );
-    });
-
-    // Cancel the first print job found
-    if (result.length > 0) {
-      const jobId = result[0].JobId;
-      console.log(`Cancelling print job with JobId: ${jobId}`);
-      const cancelJobCommand = `wmic printjob where JobId=${jobId} delete`;
-      exec(cancelJobCommand, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error canceling print job: ${stderr}`);
-        } else {
-          console.log(`Successfully cancelled print job: ${stdout}`);
-        }
-      });
-    } else {
-      console.log('No print jobs found to cancel.');
-    }
-  } catch (error) {
-    console.error('Error canceling print job:', error);
-  }
-};
-
 const printPDF = async (pdfBytes, printerName) => {
   const tempFilePath = path.join(__dirname, 'temp', `print_${Date.now()}.pdf`);
   try {
-    // Step 1: Create the temp file and save the PDF bytes
     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
     await fs.writeFile(tempFilePath, pdfBytes);
-
-    // Step 2: Check if the printer is online and ready to print
     const isOnline = await checkPrinterStatus(printerName);
-    if (!isOnline) {
-      console.log('Printer is not ready. Check for errors.');
+    if (isOnline) {
+      await pdfPrinter.print(tempFilePath, { printer: printerName });
+      console.log('Printing initiated successfully.');
+      return true;
+    } else {
+      console.log('Printer is not connected or not functioning properly.');
       return false;
     }
-
-    // Step 3: Print the PDF
-    console.log('Printing initiated successfully.');
-    await pdfPrinter.print(tempFilePath, { printer: printerName });
-
-    // Step 4: Monitor printer status during the print job
-    const printJobMonitor = setInterval(async () => {
-      const status = await checkPrinterStatus(printerName);
-      if (!status) {
-        console.log('Printer encountered an issue (e.g., paper jam or low toner).');
-        clearInterval(printJobMonitor);
-        
-        // Cancel the print job if an error occurs
-        await cancelPrintJob(printerName);
-        
-        // Notify the user about the error (could be an alert, email, etc.)
-        console.log('Printing cancelled due to paper jam or printer error.');
-        // You can replace the console.log with actual user notification here (e.g., via email, popup, etc.)
-        
-        throw new Error('Printing failed due to printer error.');
-      }
-    }, 5000); // Check every 5 seconds
-
-    return true;
   } catch (error) {
     console.error('Error printing PDF:', error);
-    return false;
+    await fs.unlink(tempFilePath);
+    throw error;
   } finally {
-    // Step 5: Clean up temp file after printing completes or an error occurs
     try {
       await fs.access(tempFilePath);
       await fs.unlink(tempFilePath);
@@ -377,38 +248,6 @@ const printPDF = async (pdfBytes, printerName) => {
     }
   }
 };
-
-// const printPDF = async (pdfBytes, printerName) => {
-//   const tempFilePath = path.join(__dirname, 'temp', `print_${Date.now()}.pdf`);
-//   try {
-//     await fs.mkdir(path.dirname(tempFilePath), { recursive: true });
-//     await fs.writeFile(tempFilePath, pdfBytes);
-//     const isOnline = await checkPrinterStatus(printerName);
-//     if (isOnline) {
-//       await pdfPrinter.print(tempFilePath, { printer: printerName });
-//       console.log('Printing initiated successfully.');
-//       return true;
-//     } else {
-//       console.log('Printer is not connected or not functioning properly.');
-//       return false;
-//     }
-//   } catch (error) {
-//     console.error('Error printing PDF:', error);
-//     await fs.unlink(tempFilePath);
-//     throw error;
-//   } finally {
-//     try {
-//       await fs.access(tempFilePath);
-//       await fs.unlink(tempFilePath);
-//     } catch (err) {
-//       if (err.code === 'ENOENT') {
-//         console.warn('Temp file already deleted or does not exist.');
-//       } else {
-//         console.error('Error deleting temp file:', err);
-//       }
-//     }
-//   }
-// };
 
 const processAndPrint = async (pdfBytes, paperSizeIndex, copies) => {
   try {
